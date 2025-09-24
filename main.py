@@ -25,7 +25,6 @@ from utils.data_io import (
 )
 from utils.save import save_lr_curve, save_prediction_plot, save_yy_plot, save_mse, ResidualPlot, ErrorHistogram
 from utils.device import limit_gpu_memory # 限制 TensorFlow 對 GPU 記憶體的預留或使用量。
-from Ensemble import start_ensemble # 整體學習
 from reports.Record_args_while_training import Record_args_while_training # 紀錄訓練時的nb_batch、bsize、period
 from reports.Metrics_Comparison import metrics_comparison # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習
 from reports.output import MSE_Improvement, MAE_Improvement # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習
@@ -351,31 +350,6 @@ def main():
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-    # elif args["train_mode"] == 'ensemble': # 使用ensemble整體學習。通過聚合、以平均的方式來得到最終預測結果
-        
-    #     for target in listdir('dataset/target'):    
-            
-    #         # make output directory
-    #         TL_model_dir = path.join(write_out_dir, args["train_mode"], target, 'model')
-    #         makedirs(TL_model_dir, exist_ok=True) # 建立目標目錄（如果不存在） 
-            
-    #         # 將transfer-learning (Unfreeze)的模型複製搬移到ensemble底下的model資料夾
-    #         source_dir = path.join(write_out_dir,'transfer-learning (Unfreeze)', target) # 獲取模型來源資料夾
-    #         for TL_model in listdir(source_dir):
-    #             src_path = path.join(source_dir, TL_model, f'{TL_model}_transferred_best_model.hdf5')
-    #             if path.isfile(src_path): # 檢查是否是檔案再執行複製
-    #                 shutil.copy(src_path, TL_model_dir) # 複製檔案到目標資料夾（覆蓋既有檔案）
-    #                 print(f"已複製: {src_path} -> {TL_model_dir}")
-    #         print("模型複製完成。")
-                    
-    #         # ensemble整體學習 預測與評估。
-    #         period = 5 # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
-    #         start_ensemble (period, write_out_dir=path.join(write_out_dir, args["train_mode"]))
-    #         keras.backend.clear_session() # 清理記憶體
-    #         print('\n' * 2 + '-' * 140 + '\n' * 2)      
-
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
