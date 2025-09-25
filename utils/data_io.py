@@ -76,7 +76,9 @@ class ReccurentTrainingGenerator(Sequence): # 在訓練LSTM模型時生成批次
         all_idx = np.random.permutation(np.arange(self.num_samples)) #  生成隨機排列的索引
         remain_idx = np.random.choice(np.arange(self.num_samples),
                                       size=(self.steps_per_epoch * self.batch_size - len(all_idx)),
-                                      replace=False)  # 足らない分を重複indexで補う (用重複的索引補足不足的部分) # 並填充不足部分的索引，使得每個epoch內的批次數與steps_per_epoch相符。
+                                      replace=True)  # 足らない分を重複indexで補う (用重複的索引補足不足的部分) # 並填充不足部分的索引，使得每個epoch內的批次數與steps_per_epoch相符。
+        # 在 replace=False 的情況下，如果 remain_idx 要的樣本數量 > self.num_samples，就會報錯。
+        # 而在 replace=True ， 因為可以重複抽樣，所以一定能補滿。但會導致某些樣本在同一個 epoch 內可能被重複使用。
         self.indices = np.hstack([all_idx, remain_idx]).reshape(self.steps_per_epoch, self.batch_size) # 最終生成的索引數組，將所有批次的索引組合在一起。
         
     def __init__(self, x_set, y_set, batch_size, timesteps, delay):
@@ -93,7 +95,8 @@ class ReccurentTrainingGenerator(Sequence): # 在訓練LSTM模型時生成批次
         self.steps = timesteps # 時間步數，即RNN模型輸入過去多少步的數據。
         self.delay = delay # 延遲步數，用於決定輸出的目標值相對於輸入的偏移量。
         
-        self.num_samples = len(self.x) - timesteps - delay + 1 # 樣本數
+        self.num_samples = len(self.x) - timesteps - delay + 1 # 樣本數，計算可生成的序列數。
+        # ↑ 如果 len(X_valid) 太小，就會出現 num_samples ≤ 0 的情況，導致 __getitem__ 沒有任何索引可取而報錯。
         self.steps_per_epoch = int(np.ceil(self.num_samples / float(batch_size)))
         
         self._resetindices()
