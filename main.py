@@ -25,6 +25,7 @@ from utils.data_io import (
 )
 from utils.save import save_lr_curve, save_prediction_plot, save_yy_plot, save_mse, ResidualPlot, ErrorHistogram
 from utils.device import limit_gpu_memory # 限制 TensorFlow 對 GPU 記憶體的預留或使用量。
+from notebook.make_sliding_windows import make_sliding_windows
 from reports.Record_args_while_training import Record_args_while_training # 紀錄訓練時的nb_batch、bsize、period
 from reports.Metrics_Comparison import metrics_comparison # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習
 from reports.output import MSE_Improvement, MAE_Improvement # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習
@@ -95,6 +96,8 @@ def main():
     
     print('-' * 140)
     print(f'train_mode: {args["train_mode"]} \n')
+
+    period = 1 
     
     if args["train_mode"] == 'pre-train': # 以預訓練模式執行模型訓練。
         
@@ -110,11 +113,10 @@ def main():
             
             # load dataset
             X_train, y_train, X_test, y_test = read_data_from_dataset(data_dir_path) # 讀取'X_train', 'y_train', 'X_test', 'y_test'資料
-            period = 5  # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
-                        # 使用前 60 分鐘的數據作為輸入 (X 陣列)，並以第75分鐘的DAILY_YIELD數據作為對應的輸出。
-                        # 每 15 分鐘紀錄一筆數據，因此period設定為5。
+            # ! period = 1  # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
             # pre-train 階段的目標：不是為了做準確的預測或模型評估，而是為了讓模型學到通用的時序結構、模式或特徵，以便未來可以把學到的權重遷移到另一個任務（也就是 transfer learning 的 target 任務）。
             # 這個資料集（source domain）只是用來初始化權重。模型表現如何，不是我們關心的；而是它「能否幫助另一個資料集」更快收斂、準確預測。
+            # pre-train不需要保留 test來做泛化評估，只是學習「時序結構」。
             X_train = np.concatenate((X_train, X_test), axis=0)  # > no need for test data when pre-training
             y_train = np.concatenate((y_train, y_test), axis=0)  # > no need for test data when pre-training
             
@@ -149,7 +151,15 @@ def main():
             print(f'\nX_valid : {X_valid.shape[0]}')
             print(f'切分比例: {args["valid_ratio"]}')
             print(f'period:{period}') # , args["nb_batch"]: {args["nb_batch"]}
-            
+            # print(f'是否X_valid會等於X_test: {X_valid == X_test}')
+
+            # --- 用 sliding windows 展開 ---
+            # 訓練階段：用 make_sliding_windows 先把 (X, y) 攤平成 (samples, timesteps=k, features)
+            X_train_w, y_train_w = make_sliding_windows(X_train, y_train, k=period, horizon=1)
+            X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1)
+            print("Train windows:", X_train_w.shape, y_train_w.shape)
+            print("Valid windows:", X_valid_w.shape, y_valid_w.shape)
+
             # construct the model
             file_path = path.join(write_result_out_dir, 'best_model.hdf5') # 指定模型的保存路徑
             callbacks = make_callbacks(file_path) # 在訓練過程中保存最佳模型
@@ -163,19 +173,40 @@ def main():
             RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 創建驗證數據
             print('開始訓練model模型（Pre-Train）')
             Record_args_while_training(write_out_dir, args["train_mode"], source, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_test)))
-            H = model.fit_generator(RTG, validation_data=RVG, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
+            # H = model.fit_generator(RTG, validation_data=validation_data, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
+            H = model.fit(
+                X_train_w, y_train_w,
+                validation_data=(X_valid_w, y_valid_w),
+                batch_size=bsize,
+                epochs=args["nb_epochs"],
+                verbose=1,
+                callbacks=callbacks
+            )
+            print(H.history.keys())
             save_lr_curve(H, write_result_out_dir, source) # 保存每個epoch的學習曲線
 
-            # prediction (進行預測並保存結果) 使用Testing資料試著預測。
-            RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
+            
+            # --- pre-train 階段驗證集預測 ---
+
+            # --- 方法 1：sliding windows ---
+            # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
+            # 預測
+            # y_valid_pred = model.predict(X_valid_w, batch_size=1)
+            # y_valid = y_valid_w 
+
+            # --- 方法 2：ReccurentPredictingGenerator ---
+            # 預測階段：仍保留 ReccurentPredictingGenerator，因為它逐筆滑動、能確保預測的時間點和原始序列對齊，方便畫圖對比。
+            RPG = ReccurentPredictingGenerator(X_valid, batch_size=1, timesteps=period) # 生成測試數據。
                                                                                        # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
-                                                                                       # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。
-            y_test_pred = model.predict_generator(RPG) # 預測測試數據
-            # save log for the model (計算誤差指標並保存結果)
-            y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
-            save_prediction_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
-            save_yy_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
-            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_test, y_test_pred, write_result_out_dir, model=model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
+                                                                                       # 且 單筆預測時，回傳結果可以直接對應到原始 X_valid 中的每個時間點，方便畫圖與對比。
+            y_valid_pred = model.predict_generator(RPG) # 預測測試數據
+            y_valid = y_valid[-len(y_valid_pred):] # 將 y_valid 的長度調整為與 y_valid_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
+            
+            # save log for the model (計算誤差指標並保存結果) 保存結果
+            save_prediction_plot(y_valid, y_valid_pred, write_result_out_dir) # 繪製 y_valid 與 y_valid_pred 的對比圖，展示預測值與實際值的偏差 (折線圖)
+            save_yy_plot(y_valid, y_valid_pred, write_result_out_dir) # 繪製 y_valid 與y_valid_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
+            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_valid, y_valid_pred, write_result_out_dir, model=model) # 計算 y_valid 和 y_valid_pred 之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
+            # 紀錄參數
             args["MAE Loss"] = mae_loss
             args["MSE Loss"] = mse_score
             args["RMSE Loss"] = rmse_loss
@@ -183,8 +214,9 @@ def main():
             Learning_Rate = model.optimizer.get_config()["learning_rate"] # 取得最終學習率
             args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存訓練參數 (args) 到結果輸出目錄中。
-            ResidualPlot(y_test, y_test_pred, write_result_out_dir)
-            ErrorHistogram(y_test, y_test_pred, write_result_out_dir)
+            # 誤差圖
+            ResidualPlot(y_valid, y_valid_pred, write_result_out_dir)
+            ErrorHistogram(y_valid, y_valid_pred, write_result_out_dir)
 
             # clear memory up (清理記憶體並保存參數)
             keras.backend.clear_session() # 清理記憶體，釋放模型佔用的資源。
