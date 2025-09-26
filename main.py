@@ -53,7 +53,7 @@ def parse_arguments():
     # ap.add_argument('--nb-subset', default=10, type=int,
     #                 help='number of data subset in bootstrapping (default : 10)') # 在bootstrapping中(即Bagging集成式學習)設定資料子集的數量。EX. 生成 10 個不同的訓練子集。
     ap.add_argument('--noise-var', default=0.0001, type=float, help='variance of noise in noise injection (default : 0.0001)') # 在噪聲注入中設定噪聲的變異數。
-    ap.add_argument('--valid-ratio', default=0.2, type=float, help='ratio of validation data in train data (default : 0.2)') # 在訓練資料中設定驗證資料的比例。
+    ap.add_argument('--valid-ratio', default=0.3, type=float, help='ratio of validation data in train data (default : 0.2)') # 在訓練資料中設定驗證資料的比例。
     ap.add_argument('--freeze', action='store_true', help='whether to freeze transferred weights in transfer learning (default : False)') # 在遷移學習中凍結已轉移的權重。
 
     # for output
@@ -78,7 +78,7 @@ def save_arguments(args, out_dir): # 旨在將參數字典 args 以 JSON 格式�
 def make_callbacks(file_path, save_csv=True):
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=4, min_lr=1e-7) # 降低學習率，以促進模型更好地收斂。
     model_checkpoint = ModelCheckpoint(filepath=file_path, monitor='val_loss', save_best_only=True, verbose=1) # 保存最佳模型。 # -- save_weights_only = True,
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True, verbose=1) 
+    early_stopping = EarlyStopping(monitor='val_loss', patience=100, min_delta=1e-4, restore_best_weights=True, verbose=1) 
     if not save_csv:
         return [reduce_lr, model_checkpoint, early_stopping]
     csv_logger = CSVLogger(path.join(path.dirname(file_path), 'epoch_log.csv')) # 將每個訓練週期的損失和評估指標記錄到 CSV 文件中
@@ -140,7 +140,7 @@ def main():
             plt.title("Residual")
 
             plt.tight_layout()
-            plt.show()
+            # plt.show()
             print(f"Decomposition 結果最佳 period: {best_period}")
             # period = best_period # 要不要用 best_period？
             # print(f"決定使用 period={period}")
