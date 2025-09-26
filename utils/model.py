@@ -135,7 +135,7 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
     print(f'初始學習率: {init_learning_rate}')
     Adam_optimizer = Adam(learning_rate=init_learning_rate) # 標準Adam優化器
     print(f'優化器參數: {Adam_optimizer.get_config()}')
-    model.compile(optimizer=Adam_optimizer, loss='mse', metrics=['mse', rmse, 'mae','mape','msle']) # metrics是模型訓練過程中用來監控模型性能的指標、評估模型的訓練效果。 # 使用動態學習率調整策略（如 ReduceLROnPlateau），設定初始學習率有助於更好地控制學習率範圍。
+    model.compile(optimizer=Adam_optimizer, loss='mse', metrics=['mse', rmse, 'mae']) # metrics是模型訓練過程中用來監控模型性能的指標、評估模型的訓練效果。 # 使用動態學習率調整策略（如 ReduceLROnPlateau），設定初始學習率有助於更好地控制學習率範圍。
     if verbose: print(model.summary())
 
     return model
