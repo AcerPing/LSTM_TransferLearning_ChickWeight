@@ -1,0 +1,18 @@
+{
+    "out_dir": "Chick Weight Result",
+    "seed": 1234,
+    "train_ratio": 0.8,
+    "train_mode": "pre-train",
+    "gpu": false,
+    "nb_epochs": 5000,
+    "nb_batch": 20,
+    "noise_var": 0.0001,
+    "valid_ratio": 0.3,
+    "freeze": false,
+    "train_verbose": 1,
+    "MAE Loss": 0.093508861090888,
+    "MSE Loss": 0.009830737481634723,
+    "RMSE Loss": 0.09915007555032282,
+    "R2 Score": -0.05744948558500251,
+    "Learning Rate": 1.0000000116860974e-07
+}
