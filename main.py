@@ -167,10 +167,27 @@ def main():
             model = build_model(input_shape, args["gpu"], write_result_out_dir)
             
             # train the model
-            bsize = 128 # len(y_train) // args["nb_batch"] # 計算批次大小batch_size # --min
+            bsize = max(16, len(y_train) // args["nb_batch"]) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
+            print(f'nb_batch:{args["nb_batch"]}')
             print(f'批次大小batch_size: {bsize}')
+            
             RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 創建訓練數據
-            RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 創建驗證數據
+            
+            # if len(X_valid) <= period:
+            #     print("⚠️ Validation set too small for sequence generation, fallback to direct tuple.")
+            #     print((X_valid.shape[0], period, X_valid.shape[1]))
+            #     X_valid_reshaped = X_valid.reshape((X_valid.shape[0], period, X_valid.shape[1])) # 手動 reshape -> (samples, timesteps=period, features)
+            #                                                                                         # 但是這會引發錯誤，ValueError: cannot reshape array of size 40 into shape (5,5,8)
+            #     validation_data = (X_valid_reshaped, y_valid)
+            # else:
+            #     RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 創建驗證數據
+            #     validation_data = RVG
+            #     x_val, y_val = RVG[0]
+            #     print(x_val.shape, y_val.shape)
+            # print("validation_data:", validation_data)
+            # RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=1, timesteps=period, delay=1) # 創建驗證數據
+            # validation_data = RVG
+
             print('開始訓練model模型（Pre-Train）')
             Record_args_while_training(write_out_dir, args["train_mode"], source, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_test)))
             # H = model.fit_generator(RTG, validation_data=validation_data, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
