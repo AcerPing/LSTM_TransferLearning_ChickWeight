@@ -1,0 +1,231 @@
+
+[2025-09-24 12:41:18]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 5
+
+[2025-09-24 12:43:26]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 5
+
+[2025-09-24 12:44:35]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 5
+
+[2025-09-24 12:45:31]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 5
+
+[2025-09-24 12:53:46]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 12:55:14]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 13:01:29]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-24 13:04:49]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 13:05:05]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 13:05:24]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-24 13:53:01]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 6
+
+[2025-09-24 13:58:27]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 2
+
+[2025-09-24 14:00:22]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 14:01:27]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 5
+
+[2025-09-24 15:50:14]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 15:54:14]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 15:59:09]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 16:04:59]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 16:23:34]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 16:43:29]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-24 17:33:42]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-25 17:29:13]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-25 17:32:37]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 2
+
+[2025-09-25 17:36:11]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-09-25 17:39:14]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-25 18:41:38]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-25 18:44:36]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 2
+
+[2025-09-25 18:50:48]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-25 18:59:59]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-25 19:02:39]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-26 14:58:28]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-26 16:36:15]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
+
+[2025-09-26 16:46:18]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 20
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1

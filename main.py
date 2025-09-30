@@ -141,7 +141,7 @@ def main():
 
             plt.tight_layout()
             # plt.show()
-            print(f"Decomposition 結果最佳 period: {best_period}")
+            print(f"Decomposition 結果最佳 period: {best_period}") # 這裡的答案會是1
             # period = best_period # 要不要用 best_period？
             # print(f"決定使用 period={period}")
             
@@ -171,20 +171,7 @@ def main():
             print(f'nb_batch:{args["nb_batch"]}')
             print(f'批次大小batch_size: {bsize}')
             
-            RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 創建訓練數據
-            
-            # if len(X_valid) <= period:
-            #     print("⚠️ Validation set too small for sequence generation, fallback to direct tuple.")
-            #     print((X_valid.shape[0], period, X_valid.shape[1]))
-            #     X_valid_reshaped = X_valid.reshape((X_valid.shape[0], period, X_valid.shape[1])) # 手動 reshape -> (samples, timesteps=period, features)
-            #                                                                                         # 但是這會引發錯誤，ValueError: cannot reshape array of size 40 into shape (5,5,8)
-            #     validation_data = (X_valid_reshaped, y_valid)
-            # else:
-            #     RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 創建驗證數據
-            #     validation_data = RVG
-            #     x_val, y_val = RVG[0]
-            #     print(x_val.shape, y_val.shape)
-            # print("validation_data:", validation_data)
+            # RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 創建訓練數據
             # RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=1, timesteps=period, delay=1) # 創建驗證數據
             # validation_data = RVG
 
@@ -192,7 +179,7 @@ def main():
             Record_args_while_training(write_out_dir, args["train_mode"], source, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_test)))
             # H = model.fit_generator(RTG, validation_data=validation_data, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
             H = model.fit(
-                X_train_w, y_train_w,
+                X_train_w, y_train_w, # X_train_w、y_train_w 已經是 numpy array
                 validation_data=(X_valid_w, y_valid_w),
                 batch_size=bsize,
                 epochs=args["nb_epochs"],
@@ -208,7 +195,7 @@ def main():
             # --- 方法 1：sliding windows ---
             # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
             # 預測
-            # y_valid_pred = model.predict(X_valid_w, batch_size=1)
+            # y_valid_pred = model.predict(X_valid_w, batch_size=1) # 輸入：完整的 numpy array / tensor
             # y_valid = y_valid_w 
 
             # --- 方法 2：ReccurentPredictingGenerator ---
@@ -216,7 +203,7 @@ def main():
             RPG = ReccurentPredictingGenerator(X_valid, batch_size=1, timesteps=period) # 生成測試數據。
                                                                                        # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
                                                                                        # 且 單筆預測時，回傳結果可以直接對應到原始 X_valid 中的每個時間點，方便畫圖與對比。
-            y_valid_pred = model.predict_generator(RPG) # 預測測試數據
+            y_valid_pred = model.predict_generator(RPG) # 預測測試數據。輸入：一個 Python generator 或 keras.utils.Sequence 類別。
             y_valid = y_valid[-len(y_valid_pred):] # 將 y_valid 的長度調整為與 y_valid_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
             
             # save log for the model (計算誤差指標並保存結果) 保存結果
