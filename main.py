@@ -323,15 +323,19 @@ def main():
             # load dataset (加載數據集並分割為訓練和驗證集)
             data_dir_path = path.join('dataset', 'target', target)
             X_train, y_train, X_test, y_test = read_data_from_dataset(data_dir_path) # 讀取'X_train', 'y_train', 'X_test', 'y_test'資料
-            period = 5 # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
-                       # 使用前 60 分鐘的數據作為輸入 (X 陣列)，並以第75分鐘的DAILY_YIELD數據作為對應的輸出。
-                       # 每 15 分鐘紀錄一筆數據，因此period設定為5
+            # ! period = 1 # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
             X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=args["valid_ratio"], shuffle=False) # 不隨機打亂數據 (shuffle=False)
             print(f'\nTarget dataset : {target}')
             print(f'\nX_train : {X_train.shape[0]}')
             print(f'\nX_valid : {X_valid.shape[0]}')
             print(f'\nX_test : {X_test.shape[0]}')
             print(f'period:{period}') # , args["nb_batch"]: {args["nb_batch"]}
+
+            # --- 用 sliding windows 展開 ---
+            X_train_w, y_train_w = make_sliding_windows(X_train, y_train, k=period, horizon=1)
+            X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1)
+            print("Train windows:", X_train_w.shape, y_train_w.shape)
+            print("Valid windows:", X_valid_w.shape, y_valid_w.shape)
             
             # construct the model (構建模型)
             file_path = path.join(write_result_out_dir, 'best_model.hdf5')
@@ -340,22 +344,39 @@ def main():
             model = build_model(input_shape, args["gpu"], write_result_out_dir)
             
             # train the model (訓練模型)
-            bsize = 128 # len(y_train) // args["nb_batch"] # 計算批次大小batch_size # --min
+            bsize = max(16, len(y_train) // args["nb_batch"]) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
+            print(f'nb_batch:{args["nb_batch"]}')
             print(f'計算批次大小batch_size: {bsize}')
-            RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 生成訓練數據，以批次形式提供給模型。
-            RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 生成驗證數據，以批次形式提供給模型。
+            # RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 生成訓練數據，以批次形式提供給模型。
+            # RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 生成驗證數據，以批次形式提供給模型。
+            
             print('開始訓練model模型（Without-Transfer-Learning）')
             Record_args_while_training(write_out_dir, args["train_mode"], target, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_valid) + len(y_test)))
-            H = model.fit_generator(RTG, validation_data=RVG, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
+            # H = model.fit_generator(RTG, validation_data=RVG, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
+            H = model.fit(
+                X_train_w, y_train_w, # X_train_w、y_train_w 已經是 numpy array
+                validation_data=(X_valid_w, y_valid_w),
+                batch_size=bsize,
+                epochs=args["nb_epochs"],
+                verbose=1,
+                callbacks=callbacks
+            )
+            print(H.history.keys())
             save_lr_curve(H, write_result_out_dir, target) # 繪製學習曲線
 
             # prediction (預測)
             best_model = load_model(file_path, custom_objects={'rmse': rmse}) # 傳遞rmse自定義指標
+            # --- 方法 1：sliding windows ---
+            # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
+            # y_valid_pred = model.predict(X_valid_w, batch_size=1)
+            # y_valid = y_valid_w
+            # --- 方法 2：ReccurentPredictingGenerator ---
             RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
+                                                                                       # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
+                                                                                       # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。            
             y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
-
+            y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。            
             # save log for the model (計算MSE誤差和保存結果)
-            y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
             save_prediction_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
             save_yy_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
             mse_score, rmse_loss, mae_loss, r2 = save_mse(y_test, y_test_pred, write_result_out_dir, model=best_model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，
@@ -363,7 +384,10 @@ def main():
             args["MSE Loss"] = mse_score
             args["RMSE Loss"] = rmse_loss
             args["R2 Score"] = r2
+            Learning_Rate = model.optimizer.get_config()["learning_rate"] # 取得最終學習率
+            args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存本次訓練或測試的所有參數設定及結果。
+            # 誤差圖
             ResidualPlot(y_test, y_test_pred, write_result_out_dir)
             ErrorHistogram(y_test, y_test_pred, write_result_out_dir)
 
