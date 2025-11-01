@@ -121,8 +121,12 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
                 model.layers[i].trainable = False
                 print(f"Layer {i} ({model.layers[i].name}) is now frozen and will not be updated during training.")
             else: # 否則，權重可訓練。允許模型在新數據上學習特定模式。
-                model.layers[i].trainable = True # 保證層被設置為可訓練（防止之前被凍結）
-                print(f"Layer {i} ({model.layers[i].name}) is trainable and its weights will be updated during training (fine-tuning).")
+                if model.layers[i].name in ["lstm_2", "batch_normalization_2"]: # 只讓最後一層 LSTM block 可訓練
+                    model.layers[i].trainable = True # 保證層被設置為可訓練（防止之前被凍結）
+                    print(f"Layer {i} ({model.layers[i].name}) is trainable and its weights will be updated during training (fine-tuning).")
+                else:
+                    model.layers[i].trainable = False
+                    print(f"Layer {i} ({model.layers[i].name}) is frozen.")
 
     # 調整優化器&學習率。
     if pre_model:
