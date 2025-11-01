@@ -6,5 +6,10 @@ node_modules # 如果用 Node.js 開發，這是 npm 安裝的所有套件資料
 
 --------------------------------------------
 
+# 忽略 Python 編譯快取
+__pycache__/
+**.pyc
+
 transfer-learning-LSTM-master.zip
+
 

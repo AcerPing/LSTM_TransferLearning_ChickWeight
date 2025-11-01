@@ -1,0 +1,12 @@
+# if len(X_valid) <= period:
+#     print("⚠️ Validation set too small for sequence generation, fallback to direct tuple.")
+#     print((X_valid.shape[0], period, X_valid.shape[1]))
+#     X_valid_reshaped = X_valid.reshape((X_valid.shape[0], period, X_valid.shape[1])) # 手動 reshape -> (samples, timesteps=period, features)
+#                                                                                         # 但是這會引發錯誤，ValueError: cannot reshape array of size 40 into shape (5,5,8)
+#     validation_data = (X_valid_reshaped, y_valid)
+# else:
+#     RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 創建驗證數據
+#     validation_data = RVG
+#     x_val, y_val = RVG[0]
+#     print(x_val.shape, y_val.shape)
+# print("validation_data:", validation_data)
