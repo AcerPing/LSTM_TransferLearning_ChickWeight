@@ -1,0 +1,42 @@
+
+[2025-10-01 15:32:59]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 2
+
+[2025-10-01 15:34:21]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 3
+
+[2025-10-01 15:35:12]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 4
+
+[2025-10-01 15:36:41]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 5
+
+[2025-10-01 16:14:19]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 2
+
+[2025-10-01 16:37:18]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 2

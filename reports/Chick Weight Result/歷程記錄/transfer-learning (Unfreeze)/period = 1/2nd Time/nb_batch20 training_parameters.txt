@@ -1,0 +1,7 @@
+
+[2025-09-30 17:32:57]
+訓練資料集 FwuSow_ Poultry 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 16
+Sequence Length (period): 1
