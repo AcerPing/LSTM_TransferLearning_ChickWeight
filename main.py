@@ -36,6 +36,8 @@ def parse_arguments():
     ap = argparse.ArgumentParser(
         description='Time-Series Regression by LSTM through transfer learning') # 表示該程式的用途是透過遷移學習使用 LSTM 進行時間序列回歸分析。
     
+    ap.add_argument('--period', default=3, type=int, help='number of time steps used as input window')
+    
     # for dataset path
     ap.add_argument('--out-dir', '-o', default='result', type=str, help='path for output directory') # 指定輸出目錄的路徑，預設值為 result。
     
@@ -96,8 +98,7 @@ def main():
     
     print('-' * 140)
     print(f'train_mode: {args["train_mode"]} \n')
-
-    # ! period = 1 
+    print(f'period: {args["period"]}')
     
     if args["train_mode"] == 'pre-train': # 以預訓練模式執行模型訓練。
         
@@ -113,12 +114,23 @@ def main():
             
             # load dataset
             X_train, y_train, X_test, y_test = read_data_from_dataset(data_dir_path) # 讀取'X_train', 'y_train', 'X_test', 'y_test'資料
-            period = 2  # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
+            period = args["period"]  # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
             # pre-train 階段的目標：不是為了做準確的預測或模型評估，而是為了讓模型學到通用的時序結構、模式或特徵，以便未來可以把學到的權重遷移到另一個任務（也就是 transfer learning 的 target 任務）。
             # 這個資料集（source domain）只是用來初始化權重。模型表現如何，不是我們關心的；而是它「能否幫助另一個資料集」更快收斂、準確預測。
             # pre-train不需要保留 test來做泛化評估，只是學習「時序結構」。
+
+            print("Before merge:")
+            print("X_train:", X_train.shape)
+            print("y_train:", y_train.shape)
+            print("X_test :", X_test.shape)
+            print("y_test :", y_test.shape)
+
             X_train = np.concatenate((X_train, X_test), axis=0)  # > no need for test data when pre-training
             y_train = np.concatenate((y_train, y_test), axis=0)  # > no need for test data when pre-training
+
+            print("After merge:")
+            print("X_train:", X_train.shape)
+            print("y_train:", y_train.shape)
             
             decomp_result, best_period = decompose_time_series(y_train) # 針對 y_train 做 time series decomposition
             trend = decomp_result["trend"]
@@ -167,7 +179,7 @@ def main():
             model = build_model(input_shape, args["gpu"], write_result_out_dir)
             
             # train the model
-            bsize = max(16, len(y_train) // args["nb_batch"]) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
+            bsize = min(16, len(y_train_w)) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
             print(f'nb_batch:{args["nb_batch"]}')
             print(f'批次大小batch_size: {bsize}')
             
@@ -176,7 +188,7 @@ def main():
             # validation_data = RVG
 
             print('開始訓練model模型（Pre-Train）')
-            Record_args_while_training(write_out_dir, args["train_mode"], source, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_test)))
+            Record_args_while_training(write_out_dir, args["train_mode"], source, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_valid)))
             # H = model.fit_generator(RTG, validation_data=validation_data, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
             H = model.fit(
                 X_train_w, y_train_w, # X_train_w、y_train_w 已經是 numpy array
@@ -195,21 +207,24 @@ def main():
             # --- 方法 1：sliding windows ---
             # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
             # 預測
-            # y_valid_pred = model.predict(X_valid_w, batch_size=1) # 輸入：完整的 numpy array / tensor
-            # y_valid = y_valid_w 
+            y_valid_pred = model.predict(X_valid_w, batch_size=1) # 輸入：完整的 numpy array / tensor
+            y_valid_eval = y_valid_w 
+
+            print("y_valid_pred:", y_valid_pred.shape)
+            print("y_valid_eval :", y_valid_eval.shape)
 
             # --- 方法 2：ReccurentPredictingGenerator ---
             # 預測階段：仍保留 ReccurentPredictingGenerator，因為它逐筆滑動、能確保預測的時間點和原始序列對齊，方便畫圖對比。
-            RPG = ReccurentPredictingGenerator(X_valid, batch_size=1, timesteps=period) # 生成測試數據。
-                                                                                       # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
-                                                                                       # 且 單筆預測時，回傳結果可以直接對應到原始 X_valid 中的每個時間點，方便畫圖與對比。
-            y_valid_pred = model.predict_generator(RPG) # 預測測試數據。輸入：一個 Python generator 或 keras.utils.Sequence 類別。
-            y_valid = y_valid[-len(y_valid_pred):] # 將 y_valid 的長度調整為與 y_valid_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
+            # RPG = ReccurentPredictingGenerator(X_valid, batch_size=1, timesteps=period) # 生成測試數據。
+            #                                                                            # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
+            #                                                                            # 且 單筆預測時，回傳結果可以直接對應到原始 X_valid 中的每個時間點，方便畫圖與對比。
+            # y_valid_pred = model.predict_generator(RPG) # 預測測試數據。輸入：一個 Python generator 或 keras.utils.Sequence 類別。
+            # y_valid = y_valid[-len(y_valid_pred):] # 將 y_valid 的長度調整為與 y_valid_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
             
             # save log for the model (計算誤差指標並保存結果) 保存結果
-            save_prediction_plot(y_valid, y_valid_pred, write_result_out_dir) # 繪製 y_valid 與 y_valid_pred 的對比圖，展示預測值與實際值的偏差 (折線圖)
-            save_yy_plot(y_valid, y_valid_pred, write_result_out_dir) # 繪製 y_valid 與y_valid_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
-            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_valid, y_valid_pred, write_result_out_dir, model=model) # 計算 y_valid 和 y_valid_pred 之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
+            save_prediction_plot(y_valid_eval, y_valid_pred, write_result_out_dir) # -- y_valid # 繪製 y_valid 與 y_valid_pred 的對比圖，展示預測值與實際值的偏差 (折線圖)
+            save_yy_plot(y_valid_eval, y_valid_pred, write_result_out_dir) # -- y_valid # 繪製 y_valid 與y_valid_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
+            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_valid_eval, y_valid_pred, write_result_out_dir, model=model) # -- y_valid # 計算 y_valid 和 y_valid_pred 之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
             # 紀錄參數
             args["MAE Loss"] = mae_loss
             args["MSE Loss"] = mse_score
@@ -219,8 +234,8 @@ def main():
             args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存訓練參數 (args) 到結果輸出目錄中。
             # 誤差圖
-            ResidualPlot(y_valid, y_valid_pred, write_result_out_dir)
-            ErrorHistogram(y_valid, y_valid_pred, write_result_out_dir)
+            ResidualPlot(y_valid_eval, y_valid_pred, write_result_out_dir) # -- y_valid
+            ErrorHistogram(y_valid_eval, y_valid_pred, write_result_out_dir) # -- y_valid
 
             # clear memory up (清理記憶體並保存參數)
             keras.backend.clear_session() # 清理記憶體，釋放模型佔用的資源。
@@ -255,7 +270,7 @@ def main():
                     
                 # load dataset (加載目標數據集)
                 data_dir_path = f'dataset/target/{target}'
-                period = 2 # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
+                period = args["period"] # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
                 X_train, y_train, X_test, y_test = read_data_from_dataset(data_dir_path)
                 # 僅從 train 切出 validation
                 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=args["valid_ratio"], shuffle=False) # 將訓練集分割為訓練和驗證。
@@ -344,7 +359,7 @@ def main():
             # load dataset (加載數據集並分割為訓練和驗證集)
             data_dir_path = path.join('dataset', 'target', target)
             X_train, y_train, X_test, y_test = read_data_from_dataset(data_dir_path) # 讀取'X_train', 'y_train', 'X_test', 'y_test'資料
-            period = 3 # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
+            period = args["period"] # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
             X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=args["valid_ratio"], shuffle=False) # 不隨機打亂數據 (shuffle=False)
             print(f'\nTarget dataset : {target}')
             print(f'\nX_train : {X_train.shape[0]}')
@@ -450,7 +465,7 @@ def main():
         model_file_path = path.join(write_result_out_dir, 'Plant1第一號發電機組_transferred_best_model.hdf5') # --調整參數 # best_model.hdf5
         print(f'Using Model Name: {model_file_path}')
         best_model = load_model(model_file_path, custom_objects={'rmse': rmse})
-        period = 5
+        period = args["period"]
         RPG = ReccurentPredictingGenerator(X_train, batch_size=1, timesteps=period) # --調整參數
         
         y_train_pred = best_model.predict_generator(RPG)
@@ -526,7 +541,7 @@ def main():
             data_dir_path = path.join('dataset', 'target', target)
             X_train, y_train, X_test, y_test = \
                 read_data_from_dataset(data_dir_path)
-            period = 5 # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
+            period = args["period"] # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
             X_train, X_valid, y_train, y_valid =  \
                 train_test_split(X_train, y_train, test_size=args["valid_ratio"], shuffle=False) # 將訓練數據劃分為訓練集和驗證集。
             print(f'\nTarget dataset : {target}')

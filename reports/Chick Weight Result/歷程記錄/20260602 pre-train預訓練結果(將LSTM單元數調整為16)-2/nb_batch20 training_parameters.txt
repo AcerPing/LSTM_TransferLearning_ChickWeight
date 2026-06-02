@@ -1,0 +1,7 @@
+
+[2026-06-02 19:41:52]
+訓練資料集 Kaggle Weight vs Age of Chicks 時的參數：
+Data Size (data_size): 22
+Number of Batches (args['nb_batch']): 20
+Batch Size (bsize): 12
+Sequence Length (period): 3

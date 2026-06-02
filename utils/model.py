@@ -41,8 +41,8 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
         noise_input = GaussianNoise(np.sqrt(noise))(input_layer) # 加入高斯噪聲層，用於模擬數據的隨機變異。屬於正則化技術，而非數據擴充（Data Augmentation）。np.sqrt(noise) 表示噪聲的標準差。
         dense = TimeDistributed(
             Dense(
-                10,
-                kernel_regularizer=regularizers.l2(0.01), # 正則化，減少模型的過度擬合。
+                8,
+                kernel_regularizer=regularizers.l2(1e-4), # 正則化，減少模型的過度擬合。
                 kernel_initializer=initializers.glorot_uniform(seed=0), # 使用 Glorot 均勻初始化方法對權重進行初始化，有助於提高模型的收斂速度和穩定性，並且有效減少梯度消失或梯度爆炸問題。
                 bias_initializer=initializers.Zeros() # 將偏置初始化為 0。
             )
@@ -51,17 +51,17 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
     else:
         dense = TimeDistributed(
             Dense( 
-                10, # 輸出單元數為10的全連接層。
-                kernel_regularizer=regularizers.l2(0.01), # 正則化，減少模型的過度擬合。
+                8, # 輸出單元數為8的全連接層。
+                kernel_regularizer=regularizers.l2(1e-4), # 正則化，減少模型的過度擬合。
                 kernel_initializer=initializers.glorot_uniform(seed=0), # 使用 Glorot 均勻初始化方法對權重進行初始化，有助於提高模型的收斂速度和穩定性。
                 bias_initializer=initializers.Zeros() # 將偏置初始化為 0。
             )
         )(input_layer)
 
     lstm1 = LSTM(
-        60,
+        16,
         return_sequences=True,
-        kernel_regularizer=regularizers.l2(0.01), # 正則化，減少模型的過度擬合。
+        kernel_regularizer=regularizers.l2(1e-4), # 正則化，減少模型的過度擬合。
         kernel_initializer=initializers.glorot_uniform(seed=0), # 使用 Glorot 均勻初始化方法對權重進行初始化，有助於提高模型的收斂速度和穩定性。
         recurrent_initializer=initializers.Orthogonal(seed=0), # 將 LSTM 的遞歸權重初始化為正交矩陣，以促進梯度穩定。
         bias_initializer=initializers.Zeros() # 將偏置初始化為 0。
@@ -69,9 +69,9 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
     lstm1 = BatchNormalization()(lstm1) # 正規化，穩定訓練過程、加速收斂，並提高模型的泛化能力。
 
     lstm2 = LSTM(
-        60,
+        16,
         return_sequences=False,
-        kernel_regularizer=regularizers.l2(0.01), # 正則化，減少模型的過度擬合。
+        kernel_regularizer=regularizers.l2(1e-4), # 正則化，減少模型的過度擬合。
         kernel_initializer=initializers.glorot_uniform(seed=0), # 使用 Glorot 均勻初始化方法對權重進行初始化，有助於提高模型的收斂速度和穩定性。
         recurrent_initializer=initializers.Orthogonal(seed=0), # 將 LSTM 的遞歸權重初始化為正交矩陣，以促進梯度穩定。
         bias_initializer=initializers.Zeros() # 將偏置初始化為 0。
@@ -80,8 +80,8 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
 
     output_layer = Dense(
         1,
-        activation='sigmoid', # 激活函數為sigmoid，適合輸出一個範圍在0到1之間的預測結果。
-        kernel_regularizer=regularizers.l2(0.01), # 正則化，減少模型的過度擬合。
+        activation='linear', 
+        kernel_regularizer=regularizers.l2(1e-4), # 正則化，減少模型的過度擬合。
         kernel_initializer=initializers.glorot_uniform(seed=0), # 使用 Glorot 均勻初始化方法對權重進行初始化，有助於提高模型的收斂速度和穩定性。
         bias_initializer=initializers.Zeros() # 將偏置初始化為 0。
     )(lstm2)
