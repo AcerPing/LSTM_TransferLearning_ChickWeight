@@ -179,7 +179,7 @@ def main():
             model = build_model(input_shape, args["gpu"], write_result_out_dir)
             
             # train the model
-            bsize = min(16, len(y_train_w)) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
+            bsize = min(16, len(y_train_w)) # 自動計算批次大小 min(16, len(y_train_w)) 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
             print(f'nb_batch:{args["nb_batch"]}')
             print(f'批次大小batch_size: {bsize}')
             
@@ -207,9 +207,9 @@ def main():
             # --- 方法 1：sliding windows ---
             # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
             # 預測
-            y_valid_pred = model.predict(X_valid_w, batch_size=1) # 輸入：完整的 numpy array / tensor
+            best_model = load_model(file_path, custom_objects={'rmse': rmse}) # 載入 validation loss 最佳的模型進行 Pre-Train 評估
+            y_valid_pred = best_model.predict(X_valid_w, batch_size=1) # # 使用與訓練一致的 sliding windows 做預測；輸入：完整的 numpy array / tensor
             y_valid_eval = y_valid_w 
-
             print("y_valid_pred:", y_valid_pred.shape)
             print("y_valid_eval :", y_valid_eval.shape)
 
@@ -224,13 +224,13 @@ def main():
             # save log for the model (計算誤差指標並保存結果) 保存結果
             save_prediction_plot(y_valid_eval, y_valid_pred, write_result_out_dir) # -- y_valid # 繪製 y_valid 與 y_valid_pred 的對比圖，展示預測值與實際值的偏差 (折線圖)
             save_yy_plot(y_valid_eval, y_valid_pred, write_result_out_dir) # -- y_valid # 繪製 y_valid 與y_valid_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
-            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_valid_eval, y_valid_pred, write_result_out_dir, model=model) # -- y_valid # 計算 y_valid 和 y_valid_pred 之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
+            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_valid_eval, y_valid_pred, write_result_out_dir, model=best_model) # -- y_valid # 計算 y_valid 和 y_valid_pred 之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
             # 紀錄參數
             args["MAE Loss"] = mae_loss
             args["MSE Loss"] = mse_score
             args["RMSE Loss"] = rmse_loss
             args["R2 Score"] = r2
-            Learning_Rate = model.optimizer.get_config()["learning_rate"] # 取得最終學習率
+            Learning_Rate = best_model.optimizer.get_config()["learning_rate"] # 取得最終學習率
             args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存訓練參數 (args) 到結果輸出目錄中。
             # 誤差圖
@@ -381,7 +381,7 @@ def main():
             model = build_model(input_shape, args["gpu"], write_result_out_dir)
             
             # train the model (訓練模型)
-            bsize = max(16, len(y_train) // args["nb_batch"]) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
+            bsize =  min(16, len(y_train_w)) # 自動計算批次大小 min(16, len(y_train_w)) 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
             print(f'nb_batch:{args["nb_batch"]}')
             print(f'計算批次大小batch_size: {bsize}')
             # RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 生成訓練數據，以批次形式提供給模型。
@@ -404,15 +404,15 @@ def main():
             # prediction (預測)
             best_model = load_model(file_path, custom_objects={'rmse': rmse}) # 傳遞rmse自定義指標
             # --- 方法 1：sliding windows ---
-            # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
-            # y_valid_pred = model.predict(X_valid_w, batch_size=1)
-            # y_valid = y_valid_w
+            X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
+            y_valid_pred = model.predict(X_valid_w, batch_size=1)
+            y_valid = y_valid_w
             # --- 方法 2：ReccurentPredictingGenerator ---
-            RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
-                                                                                       # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
-                                                                                       # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。            
-            y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
-            y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。            
+            # RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
+            #                                                                            # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
+            #                                                                            # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。            
+            # y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
+            # y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。            
             # save log for the model (計算MSE誤差和保存結果)
             save_prediction_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
             save_yy_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
