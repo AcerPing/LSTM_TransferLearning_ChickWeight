@@ -55,7 +55,7 @@ def parse_arguments():
     # ap.add_argument('--nb-subset', default=10, type=int,
     #                 help='number of data subset in bootstrapping (default : 10)') # 在bootstrapping中(即Bagging集成式學習)設定資料子集的數量。EX. 生成 10 個不同的訓練子集。
     ap.add_argument('--noise-var', default=0.0001, type=float, help='variance of noise in noise injection (default : 0.0001)') # 在噪聲注入中設定噪聲的變異數。
-    ap.add_argument('--valid-ratio', default=0.3, type=float, help='ratio of validation data in train data (default : 0.2)') # 在訓練資料中設定驗證資料的比例。
+    ap.add_argument('--valid-ratio', default=0.3, type=float, help='ratio of validation data in train data (default : 0.3)') # 在訓練資料中設定驗證資料的比例。
     ap.add_argument('--freeze', action='store_true', help='whether to freeze transferred weights in transfer learning (default : False)') # 在遷移學習中凍結已轉移的權重。
 
     # for output
@@ -403,10 +403,15 @@ def main():
 
             # prediction (預測)
             best_model = load_model(file_path, custom_objects={'rmse': rmse}) # 傳遞rmse自定義指標
+            
             # --- 方法 1：sliding windows ---
-            X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
-            y_valid_pred = model.predict(X_valid_w, batch_size=1)
-            y_valid = y_valid_w
+            X_test_w, y_test_w = make_sliding_windows(X_test, y_test, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
+            y_test_pred = best_model.predict(X_test_w, batch_size=1) 
+            y_test_eval = y_test_w
+            print("X_test_w:", X_test_w.shape)
+            print("y_test_pred:", y_test_pred.shape)
+            print("y_test_eval :", y_test_eval.shape)
+            
             # --- 方法 2：ReccurentPredictingGenerator ---
             # RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
             #                                                                            # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
@@ -414,19 +419,19 @@ def main():
             # y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
             # y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。            
             # save log for the model (計算MSE誤差和保存結果)
-            save_prediction_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
-            save_yy_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
-            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_test, y_test_pred, write_result_out_dir, model=best_model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，
+            save_prediction_plot(y_test_eval, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
+            save_yy_plot(y_test_eval, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
+            mse_score, rmse_loss, mae_loss, r2 = save_mse(y_test_eval, y_test_pred, write_result_out_dir, model=best_model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，
             args["MAE Loss"] = mae_loss
             args["MSE Loss"] = mse_score
             args["RMSE Loss"] = rmse_loss
             args["R2 Score"] = r2
-            Learning_Rate = model.optimizer.get_config()["learning_rate"] # 取得最終學習率
+            Learning_Rate = best_model.optimizer.get_config()["learning_rate"] # 取得最終學習率
             args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存本次訓練或測試的所有參數設定及結果。
             # 誤差圖
-            ResidualPlot(y_test, y_test_pred, write_result_out_dir)
-            ErrorHistogram(y_test, y_test_pred, write_result_out_dir)
+            ResidualPlot(y_test_eval, y_test_pred, write_result_out_dir)
+            ErrorHistogram(y_test_eval, y_test_pred, write_result_out_dir)
 
             # clear memory up (清理記憶體)
             keras.backend.clear_session()
