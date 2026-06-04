@@ -43,15 +43,15 @@ def parse_arguments():
     
     # for model
     ap.add_argument('--seed', type=int, default=1234, help='seed value for random value, (default : 1234)') # 確保隨機操作（如資料分割、模型初始化等）在每次執行中一致，方便實驗重現性。
-    ap.add_argument('--train-ratio', default=0.8, type=float, help='percentage of train data to be loaded (default : 0.8)') # 指定訓練集比例為 0.8（即 80%）。數據集會依據此比例分割為訓練集和測試集或驗證集。
+    ap.add_argument('--train-ratio', default=0.7, type=float, help='percentage of train data to be loaded (default : 0.7)') # 指定訓練集比例為 0.7（即 70%）。數據集會依據此比例分割為訓練集和測試集或驗證集。
 
     # for training
     ap.add_argument('--train-mode', '-m', default='pre-train', type=str,
                     help='"pre-train", "transfer-learning", "without-transfer-learning", "comparison", "ensemble", "analysis" \
                             "bagging", "noise-injection",  (default : pre-train)') # 設定模式
     ap.add_argument('--gpu', action='store_true', help='whether to do calculations on gpu machines (default : False)') # 是否啟用GPU加速 # ! 因TensorFlow版本套件，暫不啟用GPU。
-    ap.add_argument('--nb-epochs', '-e', default=1, type=int, help='training epochs for the model (default : 1)') # 設定訓練的epoch。（epoch是完整地使用所有訓練數據訓練模型的一次過程。）
-    ap.add_argument('--nb-batch', default=20, type=int, help='number of batches in training (default : 20)') # 設定訓練過程中的批次數量，預設為 20。 批次大小（batch size） = 總訓練樣本數量 ÷ 批次數量（nb-batch）
+    ap.add_argument('--nb-epochs', '-e', default=1, type=int, help='number of batches for experiment record only; actual batch_size is min(16, len(y_train_w))') # 設定訓練的epoch。（epoch是完整地使用所有訓練數據訓練模型的一次過程。）
+    ap.add_argument('--nb-batch', default=16, type=int, help='number of batches in training (default : 16)') # 設定訓練過程中的批次數量，預設為 16。 批次大小（batch size） = 總訓練樣本數量 ÷ 批次數量（nb-batch）
     # ap.add_argument('--nb-subset', default=10, type=int,
     #                 help='number of data subset in bootstrapping (default : 10)') # 在bootstrapping中(即Bagging集成式學習)設定資料子集的數量。EX. 生成 10 個不同的訓練子集。
     ap.add_argument('--noise-var', default=0.0001, type=float, help='variance of noise in noise injection (default : 0.0001)') # 在噪聲注入中設定噪聲的變異數。
@@ -296,8 +296,9 @@ def main():
                 model = build_model(input_shape, args["gpu"], write_result_out_dir, pre_model=pre_model, freeze=args["freeze"]) # 構建遷移學習模型 # freeze參數決定是否凍結預訓練模型的層，以避免在遷移學習中微調它們。
         
                 # train the model (訓練模型)
-                bsize = max(16, len(y_train) // args["nb_batch"]) # 自動計算批次大小batch_size，len(y_train) // args["nb_batch"] 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
-                                                                  # 調小 Batch Size，提升權重更新的靈敏度，並幫助模型適應新的資料特徵分佈。
+                bsize = min(16, len(y_train_w)) # 自動計算批次大小 min(16, len(y_train_w)) 會依照資料大小自動調整，確保「每個 epoch 大約有 args["nb_batch"] 個 batch」。
+                                                # 調小 Batch Size，提升權重更新的靈敏度，並幫助模型適應新的資料特徵分佈。
+                print(f'nb_batch:{args["nb_batch"]}')
                 print(f'計算批次大小batch_size: {bsize}')
                 # -- RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 生成訓練數據，以批次形式提供給模型。
                 # -- RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 生成驗證數據，以批次形式提供給模型。
@@ -315,29 +316,40 @@ def main():
                 save_lr_curve(H, write_result_out_dir, target) # 繪製學習曲線
                 
                 # prediction (進行預測並保存結果)
-                best_model = load_model(file_path, custom_objects={'rmse': rmse}) # 加載模型
+                best_model = load_model(file_path, custom_objects={'rmse': rmse}) # 載入 validation loss 最佳的 transferred model
+                
+                # --- Test set evaluation：正式 TL 評估 ---
                 # --- 方法 1：sliding windows ---
-                # X_valid_w, y_valid_w = make_sliding_windows(X_valid, y_valid, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
-                # y_valid_pred = model.predict(X_valid_w, batch_size=1)
-                # y_valid = y_valid_w
+                # 與 Without Transfer Learning 使用相同 test set sliding window 評估方式
+                X_test_w, y_test_w = make_sliding_windows(X_test, y_test, k=period, horizon=1) # 直接用 sliding windows 生成驗證集的輸入 (同訓練一致)
+                y_test_pred = best_model.predict(X_test_w, batch_size=1)
+                y_test_eval = y_test_w
+
+                print("X_test_w:", X_test_w.shape)
+                print("y_test_pred:", y_test_pred.shape)
+                print("y_test_eval :", y_test_eval.shape)
+
                 # --- 方法 2：ReccurentPredictingGenerator ---
-                RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
-                                                                                           # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
-                                                                                           # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。
-                y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
-                y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。。
+                # RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
+                #                                                                            # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
+                #                                                                            # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。
+                # y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
+                # y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。。
+
                 # save log for the model (計算MSE並保存結果)
-                save_prediction_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
-                save_yy_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
-                mse_score, rmse_loss, mae_loss, r2 = save_mse(y_test, y_test_pred, write_result_out_dir, model=best_model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
+                save_prediction_plot(y_test_eval, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
+                save_yy_plot(y_test_eval, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
+                mse_score, rmse_loss, mae_loss, r2 = save_mse(y_test_eval, y_test_pred, write_result_out_dir, model=best_model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，同時將模型摘要資訊寫入文件。
                 args["MAE Loss"] = mae_loss
                 args["MSE Loss"] = mse_score
                 args["RMSE Loss"] = rmse_loss
                 args["R2 Score"] = r2
+                Learning_Rate = best_model.optimizer.get_config()["learning_rate"]
+                args["Learning Rate"] = Learning_Rate
                 save_arguments(args, write_result_out_dir) # 保存本次訓練或測試的所有參數設定及結果。
                 # 誤差圖
-                ResidualPlot(y_test, y_test_pred, write_result_out_dir)
-                ErrorHistogram(y_test, y_test_pred, write_result_out_dir)
+                ResidualPlot(y_test_eval, y_test_pred, write_result_out_dir)
+                ErrorHistogram(y_test_eval, y_test_pred, write_result_out_dir)
 
                 # clear memory up (清理記憶體並保存參數)
                 keras.backend.clear_session() # 釋放記憶體
@@ -417,7 +429,8 @@ def main():
             #                                                                            # 預測階段，設定 batch_size=1 是為了逐筆預測資料，針對每一筆時間點資料逐一進行預測。
             #                                                                            # 且 單筆預測時，回傳結果可以直接對應到原始 X_test 中的每個時間點，方便畫圖與對比。            
             # y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
-            # y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。            
+            # y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
+      
             # save log for the model (計算MSE誤差和保存結果)
             save_prediction_plot(y_test_eval, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
             save_yy_plot(y_test_eval, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)

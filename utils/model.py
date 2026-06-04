@@ -93,7 +93,7 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
 
     # transfer weights from pre-trained model (遷移學習：載入預訓練模型權重)
     if pre_model:
-        for i in range(2, len(model.layers) - 1): #（跳過輸入層和最後輸出層）           
+        for i in range(2, len(model.layers) - 1): # 跳過 input_layer、time_distributed_1，以及最後 output_layer    
             print(f"\n--- Layer {i}: {model.layers[i].name} ---")
 
             # 獲取當前層的原始權重

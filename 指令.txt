@@ -25,5 +25,5 @@ python main.py --out-dir 'Solar Energy Result' --train-mode analysis
 【範例. Chick Weight 家禽資料集】
 python main.py  --out-dir 'Chick Weight Result' --train-mode pre-train --nb-epochs 5000 --period 3  # --gpu, --nb-batch 5
 python main.py  --out-dir 'Chick Weight Result' --train-mode without-transfer-learning --nb-epochs 5000 --period 3
-python main.py  --out-dir 'Chick Weight Result' --train-mode transfer-learning --nb-epochs 5000
+python main.py  --out-dir 'Chick Weight Result' --train-mode transfer-learning --nb-epochs 5000 --period 3
 python main.py  --out-dir 'Chick Weight Result' --train-mode transfer-learning --freeze --nb-epochs 500 
