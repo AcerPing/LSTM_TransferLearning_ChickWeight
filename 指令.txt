@@ -25,6 +25,14 @@ python main.py --out-dir 'Solar Energy Result' --train-mode analysis
 【範例. Chick Weight 家禽資料集】
 python main.py  --out-dir 'Chick Weight Result' --train-mode pre-train --nb-epochs 5000 --period 3  # --gpu, --nb-batch 5
 python main.py  --out-dir 'Chick Weight Result' --train-mode without-transfer-learning --nb-epochs 5000 --period 3
+
+● [Stage A : Kaggle Source Data 0~21 Days -> 福壽 0~21 Days]
 python main.py  --out-dir 'Chick Weight Result' --train-mode transfer-learning --nb-epochs 5000 --period 3
+● [Stage B : 福壽 0~21 Days -> 福壽 0~31 Days]
+python main.py  --out-dir "Chick Weight Result" --train-mode transfer-learning \
+  --pre-model-path "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_21/Kaggle_SourceData_0_21/Kaggle_SourceData_0_21_transferred_best_model.hdf5" \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --nb-epochs 5000 --period 3
+  
 python main.py  --out-dir 'Chick Weight Result' --train-mode transfer-learning --freeze --nb-epochs 500 --period 3
 

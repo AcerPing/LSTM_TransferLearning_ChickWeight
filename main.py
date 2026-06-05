@@ -49,6 +49,9 @@ def parse_arguments():
     ap.add_argument('--train-mode', '-m', default='pre-train', type=str,
                     help='"pre-train", "transfer-learning", "without-transfer-learning", "comparison", "ensemble", "analysis" \
                             "bagging", "noise-injection",  (default : pre-train)') # 設定模式
+    ap.add_argument("--pre-model-path", default=None, type=str)
+    ap.add_argument("--source-name", default=None, type=str)
+    ap.add_argument("--target-name", default=None, type=str)
     ap.add_argument('--gpu', action='store_true', help='whether to do calculations on gpu machines (default : False)') # 是否啟用GPU加速 # ! 因TensorFlow版本套件，暫不啟用GPU。
     ap.add_argument('--nb-epochs', '-e', default=1, type=int, help='number of batches for experiment record only; actual batch_size is min(16, len(y_train_w))') # 設定訓練的epoch。（epoch是完整地使用所有訓練數據訓練模型的一次過程。）
     ap.add_argument('--nb-batch', default=16, type=int, help='number of batches in training (default : 16)') # 設定訓練過程中的批次數量，預設為 16。 批次大小（batch size） = 總訓練樣本數量 ÷ 批次數量（nb-batch）
@@ -248,14 +251,25 @@ def main():
 
     elif args["train_mode"] == 'transfer-learning': # 使用遷移學習來訓練模型，從預訓練模型中提取權重並應用於新數據集。
         
-        for target in listdir('dataset/target'):
+        target_list = listdir("dataset/target")
+        if args["target_name"] is not None:
+            target_list = [args["target_name"]]
+        
+        for target in target_list:
         
             # skip target in the absence of pickle file
             if not path.exists(f'dataset/target/{target}/X_train.pkl'): continue
 
-            for source in listdir(f'{write_out_dir}/pre-train'): # 遍歷預訓練的模型，對每個模型進行遷移學習。
-                
-                pre_model_path = f'{write_out_dir}/pre-train/{source}/best_model.hdf5' # 確保預訓練模型權重存在。
+            # for source in listdir(f'{write_out_dir}/pre-train'): # 遍歷預訓練的模型，對每個模型進行遷移學習。
+            source_list = listdir(f'{write_out_dir}/pre-train')
+            if args["source_name"] is not None:
+                source_list = [args["source_name"]]
+                            
+            for source in source_list:
+                if args["pre_model_path"] is not None:
+                    pre_model_path = args["pre_model_path"]
+                else:
+                    pre_model_path = f'{write_out_dir}/pre-train/{source}/best_model.hdf5' # 確保預訓練模型權重存在。
                 if not path.exists(pre_model_path): continue
 
                 # make output directory 保存結果的目錄
