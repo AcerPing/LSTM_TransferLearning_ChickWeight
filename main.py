@@ -53,7 +53,7 @@ def parse_arguments():
     ap.add_argument("--source-name", default=None, type=str)
     ap.add_argument("--target-name", default=None, type=str)
     ap.add_argument('--gpu', action='store_true', help='whether to do calculations on gpu machines (default : False)') # 是否啟用GPU加速 # ! 因TensorFlow版本套件，暫不啟用GPU。
-    ap.add_argument('--nb-epochs', '-e', default=1, type=int, help='number of batches for experiment record only; actual batch_size is min(16, len(y_train_w))') # 設定訓練的epoch。（epoch是完整地使用所有訓練數據訓練模型的一次過程。）
+    ap.add_argument('--nb-epochs', '-e', default=1, type=int, help='training epochs for the model') # 設定訓練的epoch。（epoch是完整地使用所有訓練數據訓練模型的一次過程。）
     ap.add_argument('--nb-batch', default=16, type=int, help='number of batches in training (default : 16)') # 設定訓練過程中的批次數量，預設為 16。 批次大小（batch size） = 總訓練樣本數量 ÷ 批次數量（nb-batch）
     # ap.add_argument('--nb-subset', default=10, type=int,
     #                 help='number of data subset in bootstrapping (default : 10)') # 在bootstrapping中(即Bagging集成式學習)設定資料子集的數量。EX. 生成 10 個不同的訓練子集。
@@ -105,11 +105,17 @@ def main():
     
     if args["train_mode"] == 'pre-train': # 以預訓練模式執行模型訓練。
         
-        for source in listdir('dataset/source'): # 逐個處理來源數據集
+        source_list = listdir("dataset/source")
+        if args["source_name"] is not None:
+            source_list = [args["source_name"]]
+        
+        for source in source_list: # for source in listdir('dataset/source'): # 逐個處理來源數據集
 
             # skip source dataset without pickle file
             data_dir_path = path.join('dataset', 'source', source)
-            if not path.exists(f'{data_dir_path}/X_train.pkl'): continue
+            if not path.exists(f'{data_dir_path}/X_train.pkl'): 
+                print(f"Skip source dataset without X_train.pkl: {source}")
+                continue
             
             # make output directory
             write_result_out_dir = path.join(write_out_dir, args["train_mode"], source)
@@ -258,19 +264,31 @@ def main():
         for target in target_list:
         
             # skip target in the absence of pickle file
-            if not path.exists(f'dataset/target/{target}/X_train.pkl'): continue
+            if not path.exists(f'dataset/target/{target}/X_train.pkl'): 
+                print(f"Skip target dataset without X_train.pkl: {target}")
+                continue
 
             # for source in listdir(f'{write_out_dir}/pre-train'): # 遍歷預訓練的模型，對每個模型進行遷移學習。
-            source_list = listdir(f'{write_out_dir}/pre-train')
-            if args["source_name"] is not None:
-                source_list = [args["source_name"]]
+            # 若有指定 --pre-model-path，代表使用外部指定模型，不需要依賴 reports/.../pre-train 資料夾
+            if args["pre_model_path"] is not None:
+                source_list = [args["source_name"] if args["source_name"] is not None else "custom_pre_model"]
+            else:
+                source_pretrain_dir = f'{write_out_dir}/pre-train'
+                if not path.exists(source_pretrain_dir):
+                    raise FileNotFoundError(f"找不到 pre-train 資料夾：{source_pretrain_dir}")
+
+                source_list = listdir(source_pretrain_dir)
+                if args["source_name"] is not None:
+                    source_list = [args["source_name"]]
                             
             for source in source_list:
                 if args["pre_model_path"] is not None:
                     pre_model_path = args["pre_model_path"]
                 else:
                     pre_model_path = f'{write_out_dir}/pre-train/{source}/best_model.hdf5' # 確保預訓練模型權重存在。
-                if not path.exists(pre_model_path): continue
+                if not path.exists(pre_model_path): 
+                    print(f"Skip: 找不到 pre_model_path：{pre_model_path}")
+                    continue
 
                 # make output directory 保存結果的目錄
                 if args["freeze"]:
@@ -376,7 +394,11 @@ def main():
 
     elif args["train_mode"] == 'without-transfer-learning': # 不使用遷移學習
 
-        for target in listdir('dataset/target'):
+        target_list = listdir("dataset/target")
+        if args["target_name"] is not None:
+            target_list = [args["target_name"]]
+        
+        for target in target_list: # for target in listdir('dataset/target'):
         
             # make output directory
             write_result_out_dir = path.join(write_out_dir, args["train_mode"], target)
@@ -384,6 +406,10 @@ def main():
 
             # load dataset (加載數據集並分割為訓練和驗證集)
             data_dir_path = path.join('dataset', 'target', target)
+            if not path.exists(f'{data_dir_path}/X_train.pkl'):
+                print(f"Skip target dataset without X_train.pkl: {target}")
+                continue
+
             X_train, y_train, X_test, y_test = read_data_from_dataset(data_dir_path) # 讀取'X_train', 'y_train', 'X_test', 'y_test'資料
             period = args["period"] # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
             X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=args["valid_ratio"], shuffle=False) # 不隨機打亂數據 (shuffle=False)
