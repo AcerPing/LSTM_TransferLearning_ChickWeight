@@ -1,0 +1,23 @@
+{
+    "period": 3,
+    "out_dir": "Chick Weight Result",
+    "seed": 1234,
+    "train_ratio": 0.7,
+    "train_mode": "transfer-learning",
+    "pre_model_path": "reports/Chick Weight Result/pre-train/StageA_Kaggle0_21_to_FwuSow0_21/best_model.hdf5",
+    "source_name": "StageA_Kaggle0_21_to_FwuSow0_21",
+    "target_name": "FwuSow_Poultry_0_31_reuse0_21_scaler",
+    "gpu": false,
+    "nb_epochs": 6500,
+    "nb_batch": 16,
+    "noise_var": 0.0001,
+    "valid_ratio": 0.3,
+    "freeze": false,
+    "learning_rate": 1e-05,
+    "train_verbose": 1,
+    "MAE Loss": 0.5213025228485629,
+    "MSE Loss": 0.31386061031427515,
+    "RMSE Loss": 0.5602326394581765,
+    "R2 Score": -9.198007916363546,
+    "Learning Rate": 1.0000000116860974e-07
+}
