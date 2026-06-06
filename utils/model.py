@@ -23,6 +23,7 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
                 write_result_out_dir,
                 pre_model=None, # 若有傳入預訓練模型，則可以從中載入權重。
                 freeze=False, # 若為True，會將部分層設為不可訓練，用於遷移學習。
+                learning_rate=None,
                 noise=None, # 若設定此參數，會加入一層高斯噪聲層，模擬數據變異。
                 verbose=True,
                 savefig=True):
@@ -89,49 +90,132 @@ def build_model(input_shape: tuple, # 模型的輸入形狀(timesteps, features)
     model = Model(inputs=input_layer, outputs=output_layer) # 建立模型
     if savefig:
         plot_model(model, to_file=f'{write_result_out_dir}/architecture.png', show_shapes=True, show_layer_names=True) # 繪製神經網路模型的結構並將其保存為圖片檔案
-    
 
-    # transfer weights from pre-trained model (遷移學習：載入預訓練模型權重)
+    # TODO: Stage B (FwuSow0_21_to_FwuSow0_31) 啟用
     if pre_model:
-        for i in range(2, len(model.layers) - 1): # 跳過 input_layer、time_distributed_1，以及最後 output_layer    
-            print(f"\n--- Layer {i}: {model.layers[i].name} ---")
 
-            # 獲取當前層的原始權重
-            original_weights = model.layers[i].get_weights() # 模型當前層的初始權重。
-            # print(f"Original Weights (Before):\n{original_weights}")
+        if freeze:
+            # Freeze TL：搬移主要隱藏層權重，凍結遷移層，只訓練 output layer
+            TRANSFER_LAYERS = [
+                "time_distributed_1",
+                # "lstm_1",
+                "batch_normalization_1",
+                "lstm_2",
+                "batch_normalization_2"
+            ]
+
+            TRAINABLE_LAYERS = [
+                # Freeze 模式下，這裡故意不放遷移層
+                # output layer 會用 i == len(model.layers) - 1 保持可訓練
+            ]
+        else:
+            # Unfreeze / Partial Fine-tuning v4：目前最佳版本
+            # 搬移 BN1 + LSTM2 + BN2，只微調 LSTM2 + output
+            TRANSFER_LAYERS = [
+                "time_distributed_1",
+                # "lstm_1",
+                "batch_normalization_1",
+                "lstm_2",
+                "batch_normalization_2"
+            ]
+
+            TRAINABLE_LAYERS = [
+                "lstm_2"
+            ]
+
+        print("\nModel layers:")
+        for i, layer in enumerate(model.layers):
+            layer_name = layer.name
+            print(f"\n--- Layer {i}: {layer_name} ---")
+
+            if len(layer.get_weights()) == 0:
+                print(f"Layer {i} ({layer_name}) has no weights. Skip.")
+                continue
             
-            # 將對應層的權重從預訓練模型載入
-            pre_trained_weights = pre_model.layers[i].get_weights() # 從預訓練模型中加載的權重。
-            # print(f"Pre-trained Weights (Loaded):\n{pre_trained_weights}")
-            
-            # 獲取更新後的權重            
-            model.layers[i].set_weights(pre_model.layers[i].get_weights()) # 將對應層的權重從預訓練模型載入。
+            # 權重搬移
+            if layer_name in TRANSFER_LAYERS:
+                try:
+                    pre_layer = pre_model.get_layer(layer_name)
+                    pre_trained_weights = pre_layer.get_weights()
+                    current_weights = layer.get_weights()
 
-            # 獲取更新後的權重
-            updated_weights = model.layers[i].get_weights() # 載入預訓練權重後的權重。
-            # print(f"Updated Weights (After):\n{updated_weights}")
+                    if len(pre_trained_weights) == len(current_weights) and all(
+                        pw.shape == cw.shape
+                        for pw, cw in zip(pre_trained_weights, current_weights)
+                    ):
+                        layer.set_weights(pre_trained_weights)
+                        print(f"Layer {i} ({layer_name}) weights transferred successfully.")
+                    else:
+                        print(f"Layer {i} ({layer_name}) shape mismatch. Skip transfer.")
 
-            # 檢查是否與預訓練模型一致
-            if all(np.array_equal(w1, w2) for w1, w2 in zip(updated_weights, pre_trained_weights)):
-                print("Weights successfully updated to pre-trained weights!")
+                except ValueError:
+                    print(f"Layer {i} ({layer_name}) not found in pre_model. Skip transfer.")
             else:
-                print("Weights mismatch after update!")
+                print(f"Layer {i} ({layer_name}) not transferred.")
 
-            if freeze: # 若 freeze=True，則將這些層設置為不可訓練（即權重不會在訓練中更新），這樣可以保持預訓練權重不變。
-                model.layers[i].trainable = False
-                print(f"Layer {i} ({model.layers[i].name}) is now frozen and will not be updated during training.")
-            else: # 否則，權重可訓練。允許模型在新數據上學習特定模式。
-                if model.layers[i].name in ["lstm_2", "batch_normalization_2"]: # 只讓最後一層 LSTM block 可訓練
-                    model.layers[i].trainable = True # 保證層被設置為可訓練（防止之前被凍結）
-                    print(f"Layer {i} ({model.layers[i].name}) is trainable and its weights will be updated during training (fine-tuning).")
+            # trainable 設定
+            if freeze:
+                # Freeze TL：遷移層凍結，output layer 保持可訓練
+                if i == len(model.layers) - 1:
+                    layer.trainable = True
                 else:
-                    model.layers[i].trainable = False
-                    print(f"Layer {i} ({model.layers[i].name}) is frozen.")
+                    layer.trainable = False
+
+            else:
+                # Partial Fine-tuning：只訓練指定層 + output layer
+                if layer_name in TRAINABLE_LAYERS or i == len(model.layers) - 1:
+                    layer.trainable = True
+                else:
+                    layer.trainable = False
+
+            print(f"Layer {i} ({layer_name}) trainable = {layer.trainable}")
+
+
+    # # TODO: Stage A (KaggleSrc_0-21_to_FwuSowTgt_0-21) 啟用
+    # # transfer weights from pre-trained model (遷移學習：載入預訓練模型權重)
+    # if pre_model:
+    #     for i in range(2, len(model.layers) - 1): # 跳過 input_layer、time_distributed_1，以及最後 output_layer    
+    #         print(f"\n--- Layer {i}: {model.layers[i].name} ---")
+
+    #         # 獲取當前層的原始權重
+    #         original_weights = model.layers[i].get_weights() # 模型當前層的初始權重。
+    #         # print(f"Original Weights (Before):\n{original_weights}")
+            
+    #         # 將對應層的權重從預訓練模型載入
+    #         pre_trained_weights = pre_model.layers[i].get_weights() # 從預訓練模型中加載的權重。
+    #         # print(f"Pre-trained Weights (Loaded):\n{pre_trained_weights}")
+            
+    #         # 獲取更新後的權重            
+    #         model.layers[i].set_weights(pre_model.layers[i].get_weights()) # 將對應層的權重從預訓練模型載入。
+
+    #         # 獲取更新後的權重
+    #         updated_weights = model.layers[i].get_weights() # 載入預訓練權重後的權重。
+    #         # print(f"Updated Weights (After):\n{updated_weights}")
+
+    #         # 檢查是否與預訓練模型一致
+    #         if all(np.array_equal(w1, w2) for w1, w2 in zip(updated_weights, pre_trained_weights)):
+    #             print("Weights successfully updated to pre-trained weights!")
+    #         else:
+    #             print("Weights mismatch after update!")
+
+    #         if freeze: # 若 freeze=True，則將這些層設置為不可訓練（即權重不會在訓練中更新），這樣可以保持預訓練權重不變。
+    #             model.layers[i].trainable = False
+    #             print(f"Layer {i} ({model.layers[i].name}) is now frozen and will not be updated during training.")
+    #         else: # 否則，權重可訓練。允許模型在新數據上學習特定模式。
+    #             if model.layers[i].name in ["lstm_2", "batch_normalization_2"]:  # 只讓最後一層 LSTM block 可訓練
+    #                 model.layers[i].trainable = True # 保證層被設置為可訓練（防止之前被凍結）
+    #                 print(f"Layer {i} ({model.layers[i].name}) is trainable and its weights will be updated during training (fine-tuning).")
+    #             else:
+    #                 model.layers[i].trainable = False
+    #                 print(f"Layer {i} ({model.layers[i].name}) is frozen.")
+
 
     # 調整優化器&學習率。
-    if pre_model:
+    if learning_rate is not None:
+        init_learning_rate = learning_rate
+    elif pre_model:
         # 通常需要更小的學習率；微調時若學習率太大，會導致破壞原本從預訓練模型學到的通用知識。
-        init_learning_rate = 1e-5  # 比原先低一個數量級
+        init_learning_rate = 1e-8  # 比原先低一個數量級
     else:
         # 不是遷移學習的狀況
         init_learning_rate = 1e-4
