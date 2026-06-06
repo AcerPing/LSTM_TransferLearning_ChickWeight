@@ -18,33 +18,60 @@ matplotlib.rcParams['font.sans-serif'] = ['Noto Sans CJK SC'] + matplotlib.rcPar
 
 
 def save_lr_curve(H, out_dir: str, f_name=None):
-    """save learning curve in deep learning
+    """save learning curve in deep learning"""
 
-    Args:
-        model : trained model (keras)
-        out_dir (str): directory path for saving
-    """
-    f_name = 'Learning Curve' if not f_name else f'{f_name} Learning Curve' # 檔名
-    plt.figure(figsize=(30, 10)) # 建立圖表
-    plt.rcParams["font.size"] = 18 # 字體大小為 18。
-    plt.plot(H.history['loss'], label='Train', marker='o', markersize=5) # 繪製訓練損失曲線
-    plt.plot(H.history['val_loss'], label='Validation', marker='s', markersize=5) # 繪製驗證損失曲線
-    # Add value annotations
-    for i, value in enumerate(H.history['loss']):
-        if i % 10 == 0:  # 每隔 10 個數據點標一次
-            plt.annotate(f'{value:.4f}', xy=(i, value), xytext=(0, 5), textcoords='offset points', ha='center', va='bottom', fontsize=12, color='blue', alpha=0.9)
-    for i, value in enumerate(H.history['val_loss']):
-        if i % 10 == 0:  # 每隔 10 個數據點標一次
-            plt.annotate(f'{value:.4f}', xy=(i, value), xytext=(0, -5), textcoords='offset points', ha='center', va='top', fontsize=12, color='orange', alpha=0.9)
+    f_name = 'Learning Curve' if not f_name else f'{f_name} Learning Curve'
+
+    train_loss = H.history['loss']
+    val_loss = H.history['val_loss']
+    epochs = range(len(train_loss))
+
+    plt.figure(figsize=(30, 10))
+    plt.rcParams["font.size"] = 18
+
+    plt.plot(epochs, train_loss, label='Train', marker='o', markersize=3)
+    plt.plot(epochs, val_loss, label='Validation', marker='s', markersize=3)
+
+    # 每張圖最多標約 10 個點，避免文字太密
+    label_interval = max(1, len(train_loss) // 10)
+
+    for i, value in enumerate(train_loss):
+        if i % label_interval == 0 or i == len(train_loss) - 1:
+            plt.annotate(
+                f'{value:.4f}',
+                xy=(i, value),
+                xytext=(0, 6),
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
+                fontsize=11,
+                color='blue',
+                alpha=0.8
+            )
+
+    for i, value in enumerate(val_loss):
+        if i % label_interval == 0 or i == len(val_loss) - 1:
+            plt.annotate(
+                f'{value:.4f}',
+                xy=(i, value),
+                xytext=(0, -8),
+                textcoords='offset points',
+                ha='center',
+                va='top',
+                fontsize=11,
+                color='orange',
+                alpha=0.8
+            )
+
     plt.title(f'{f_name} (Model Loss)', fontsize=18)
     plt.ylabel('MSE Loss', fontsize=16)
     plt.xlabel('Epoch', fontsize=16)
     plt.legend(['Train', 'Validation'], loc='best', fontsize=14)
-    plt.grid(alpha=0.3)  # 加入透明網格，便於觀察
+    plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig(path.join(out_dir, f'{f_name}.png'), bbox_inches='tight')
-    # plt.show()
-    plt.close('all')  # 關閉所有繪圖對象
+    plt.close('all')
+
     print(f"Plot saved to {path.join(out_dir, f'{f_name}.png')}")
 
 
