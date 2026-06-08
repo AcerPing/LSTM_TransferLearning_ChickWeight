@@ -1,10 +1,10 @@
 import random
 import argparse # 解析命令列參數
 import json
-# import shutil
+import shutil
 import os
 from os import path, getcwd, makedirs, environ, listdir
-# import pandas as pd
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # ! 不要初始化GPU裝置，避免 CUDA、cuDNN 相容性問題。
@@ -19,8 +19,8 @@ from keras.callbacks import CSVLogger, ModelCheckpoint, ReduceLROnPlateau, Early
 from utils.model import build_model, rmse
 from utils.data_io import (
     read_data_from_dataset,
-    # ReccurentTrainingGenerator,
-    # ReccurentPredictingGenerator,
+    ReccurentTrainingGenerator,
+    ReccurentPredictingGenerator,
     decompose_time_series
 )
 from utils.save import save_lr_curve, save_prediction_plot, save_yy_plot, save_mse, ResidualPlot, ErrorHistogram
@@ -40,10 +40,10 @@ def parse_arguments():
     
     # for model
     ap.add_argument('--seed', type=int, default=1234, help='seed value for random value, (default : 1234)') # 確保隨機操作（如資料分割、模型初始化等）在每次執行中一致，方便實驗重現性。
-    # ap.add_argument('--train-ratio', default=0.7, type=float, help='percentage of train data to be loaded (default : 0.7)') # 指定訓練集比例為 0.7（即 70%）。數據集會依據此比例分割為訓練集和測試集或驗證集。
+    ap.add_argument('--train-ratio', default=0.7, type=float, help='percentage of train data to be loaded (default : 0.7)') # 指定訓練集比例為 0.7（即 70%）。數據集會依據此比例分割為訓練集和測試集或驗證集。
 
     # for training
-    ap.add_argument('--train-mode', '-m', default='pre-train', type=str, help='"pre-train", "transfer-learning", "without-transfer-learning" (default : pre-train)') # 設定模式
+    ap.add_argument('--train-mode', '-m', default='pre-train', type=str, help='"pre-train", "transfer-learning", "without-transfer-learning", "analysis" (default : pre-train)') # 設定模式
     ap.add_argument("--pre-model-path", default=None, type=str)
     ap.add_argument("--source-name", default=None, type=str)
     ap.add_argument("--target-name", default=None, type=str)
@@ -487,6 +487,83 @@ def main():
             # clear memory up (清理記憶體)
             keras.backend.clear_session()
             print('\n' * 2 + '-' * 140 + '\n' * 2)
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    elif args["train_mode"] == 'analysis': # 使用指定的模型權重，預測資料，並輸出結果。
+        
+        source = r'（TransferLearning遷移學習）Plant2第二號發電機組'
+        write_result_out_dir = path.join(write_out_dir, args["train_mode"], source)
+        print(f'Output Directory: {write_result_out_dir}')
+
+        X_train, y_train, X_test, y_test = read_data_from_dataset(write_result_out_dir) # 讀取'X_train', 'y_train', 'X_test', 'y_test'資料
+        X_train = np.concatenate((X_train, X_test), axis=0)
+        y_train = np.concatenate((y_train, y_test), axis=0)
+
+        model_file_path = path.join(write_result_out_dir, 'Plant1第一號發電機組_transferred_best_model.hdf5') # --調整參數 # best_model.hdf5
+        print(f'Using Model Name: {model_file_path}')
+        best_model = load_model(model_file_path, custom_objects={'rmse': rmse})
+        period = args["period"]
+        RPG = ReccurentPredictingGenerator(X_train, batch_size=1, timesteps=period) # --調整參數
+        
+        y_train_pred = best_model.predict_generator(RPG)
+        y_train = y_train[-len(y_train_pred):] 
+        print(f'y_train_pred.shape: {y_train_pred.shape}')
+        print(f'y_train.shape: {y_train.shape}')
+        df_output = pd.DataFrame({
+            'True': y_train.flatten(),
+            'Predicted': y_train_pred.flatten(),
+        })
+        output_csv_path = path.join(write_result_out_dir, 'pred_vs_true.csv') # 設定輸出路徑
+        df_output.to_csv(output_csv_path, index=False)
+        print(f'CSV 儲存成功：{output_csv_path}')
+
+        residuals = y_train.flatten() - y_train_pred.flatten()
+
+        # 計算 Residual 與 標記高估樣本
+        feature_names = ['TIME_SIN', 'TIME_COS', 'IRRADIATION', 'AMBIENT_TEMPERATURE', 'MODULE_TEMPERATURE']
+        df_analysis = pd.DataFrame(X_train[-len(y_train_pred):], columns=feature_names)
+        df_analysis['residual'] = residuals
+        df_analysis['is_overestimate'] = df_analysis['residual'] < 0  # 預測過高
+        df_analysis.to_csv( path.join(write_result_out_dir, 'Residual Analysis.csv'), index=False)
+        print(f"[分析資料儲存] {path.join(write_result_out_dir, 'Residual Analysis.csv')}")
+
+        # ================================
+        # 方法 1：儲存每個特徵的箱型圖
+        # ================================
+        for col in feature_names:
+            plt.figure(figsize=(6, 4))
+            sns.boxplot(data=df_analysis, x='is_overestimate', y=col)
+            plt.title(f'Feature: {col} | Overestimate vs Underestimate')
+            plt.xlabel('Overestimated (True/False)')
+            plt.ylabel(col)
+            plt.savefig(path.join(write_result_out_dir, f'{col}_boxplot.png'), bbox_inches='tight')
+            # plt.show()
+            plt.close()
+            print(f'[圖表儲存] {col}_boxplot.png')
+        
+        # ================================
+        # 方法 2：計算平均差異並輸出為 CSV
+        # ================================
+        over = df_analysis[df_analysis['is_overestimate']]
+        under = df_analysis[~df_analysis['is_overestimate']]
+
+        diff_df = pd.DataFrame({
+            'Feature': feature_names,
+            'Mean_Overestimate': over[feature_names].mean().values,
+            'Mean_Underestimate': under[feature_names].mean().values,
+            'Difference': (over[feature_names].mean() - under[feature_names].mean()).values
+        })
+
+        diff_df['abs_diff'] = diff_df['Difference'].abs()
+        diff_df.sort_values('abs_diff', ascending=False, inplace=True)
+        # diff_df.drop(columns='abs_diff', inplace=True) 
+        print(diff_df) # 特徵在高估樣本中是否顯著偏大或偏小
+        csv_path = path.join(write_result_out_dir, 'residual_difference_summary.csv')
+        diff_df.to_csv(csv_path, index=False) # 儲存為 CSV
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
