@@ -1,0 +1,185 @@
+【範例. Chick Weight 家禽資料集－更新版】
+
+# ============================================================
+# Stage 0：Kaggle Source 0~21 Pre-Train
+# 目的：先讓模型學習 Kaggle 0~21 日齡雞隻早期生長趨勢
+# Source：dataset/source/Kaggle Weight vs Age of Chicks
+# 注意：--source-name 請確認與 dataset/source/ 下的 Kaggle 資料夾名稱一致
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode pre-train \
+  --source-name "Kaggle Weight vs Age of Chicks" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage A Baseline：FwuSow Target 0~21 Without Transfer Learning
+# 目的：建立福壽 0~21 日齡 Target baseline
+# Target：dataset/target/FwuSow_Poultry_0~21
+# 注意：--target-name 請確認與 dataset/target/ 下的福壽 0~21 資料夾名稱一致
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode without-transfer-learning \
+  --target-name "FwuSow_Poultry_0~21" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage A：Kaggle Source 0~21 -> FwuSow Target 0~21
+# 模型設定：Partial Fine-tuning
+# Source：dataset/source/Kaggle Weight vs Age of Chicks
+# Target：dataset/target/FwuSow_Poultry_0~21
+# 目的：產生 Stage A 權重，作為 Stage B 分階段遷移之 pre-model
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode transfer-learning \
+  --source-name "Kaggle Weight vs Age of Chicks" \
+  --target-name "FwuSow_Poultry_0~21" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage A Freeze：Kaggle Source 0~21 -> FwuSow Target 0~21
+# 模型設定：Freeze Transfer Learning
+# Source：dataset/source/Kaggle Weight vs Age of Chicks
+# Target：dataset/target/FwuSow_Poultry_0~21
+# 目的：作為 Stage A 的 Freeze 對照組
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode transfer-learning \
+  --freeze \
+  --source-name "Kaggle Weight vs Age of Chicks" \
+  --target-name "FwuSow_Poultry_0~21" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# 建議：將 Stage A 產生的最佳權重另存為穩定路徑
+# 例如：
+# reports/Chick Weight Result/pre-train/StageA_Kaggle0_21_to_FwuSow0_21/best_model.hdf5
+# 目的：避免 Stage B 使用錯誤權重
+# 注意：若沒有手動複製，Stage B 的 --pre-model-path 必須改成實際 Stage A 輸出路徑
+# ============================================================
+
+
+# ============================================================
+# Stage B Baseline：FwuSow Target 0~31 Without Transfer Learning
+# 目的：建立福壽 0~31 日齡完整區間 baseline
+# Target：dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler
+# 注意：此 baseline 與 Stage C Baseline 使用同一組 Target，可共用結果，不必重複執行
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode without-transfer-learning \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage B：Stage A 權重 -> FwuSow Target 0~31
+# 實驗定位：分階段遷移
+# Source/Pre-model：Stage A, Kaggle 0~21 -> FwuSow 0~21
+# Target：dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler
+# 模型設定：Partial Fine-tuning
+# 目的：檢查 Stage A 權重是否能改善 0~31 後期延伸任務
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode transfer-learning \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --pre-model-path "reports/Chick Weight Result/pre-train/StageA_Kaggle0_21_to_FwuSow0_21/best_model.hdf5" \
+  --source-name "StageA_Kaggle0_21_to_FwuSow0_21" \
+  --seed 1234 \
+  --nb-epochs 6500 \
+  --period 3 \
+  --learning-rate 1e-9
+
+
+# ============================================================
+# Stage B Freeze：Stage A 權重 -> FwuSow Target 0~31
+# 實驗定位：分階段遷移 Freeze 對照組
+# Source/Pre-model：Stage A, Kaggle 0~21 -> FwuSow 0~21
+# Target：dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler
+# 模型設定：Freeze Transfer Learning
+# 目的：作為 Stage B Freeze 對照組
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode transfer-learning \
+  --freeze \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --pre-model-path "reports/Chick Weight Result/pre-train/StageA_Kaggle0_21_to_FwuSow0_21/best_model.hdf5" \
+  --source-name "StageA_Kaggle0_21_to_FwuSow0_21" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage C Baseline：FwuSow Target 0~31 Without Transfer Learning
+# 實驗定位：Stage C / Exp.5 的直接遷移對照 baseline
+# Target：dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler
+# 注意：若 Stage B Baseline 已執行過同一 target，這段可略過，直接共用 baseline 結果
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode without-transfer-learning \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage C：Kaggle Source 0~21 Pre-Train -> FwuSow Target 0~31
+# 實驗定位：Direct Transfer，直接遷移對照組
+# Source：dataset/source/Kaggle Weight vs Age of Chicks
+# Target：dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler
+# Pre-model：Kaggle Source 0~21 pre-train best_model.hdf5
+# 模型設定：Partial Fine-tuning
+# 目的：檢查不經過 FwuSow 0~21 中介 fine-tuning 時，Kaggle 權重直接遷移到 FwuSow 0~31 的效果
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode transfer-learning \
+  --source-name "Kaggle Weight vs Age of Chicks" \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --pre-model-path "reports/Chick Weight Result/pre-train/Kaggle Weight vs Age of Chicks/best_model.hdf5" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
+
+
+# ============================================================
+# Stage C Freeze：Kaggle Source 0~21 Pre-Train -> FwuSow Target 0~31
+# 實驗定位：Direct Transfer Freeze 對照組
+# Source：dataset/source/Kaggle Weight vs Age of Chicks
+# Target：dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler
+# Pre-model：Kaggle Source 0~21 pre-train best_model.hdf5
+# 模型設定：Freeze Transfer Learning
+# 目的：比較直接遷移下 Freeze 與 Partial Fine-tuning 的差異
+# ============================================================
+
+python main.py --out-dir "Chick Weight Result" \
+  --train-mode transfer-learning \
+  --freeze \
+  --source-name "Kaggle Weight vs Age of Chicks" \
+  --target-name "FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --pre-model-path "reports/Chick Weight Result/pre-train/Kaggle Weight vs Age of Chicks/best_model.hdf5" \
+  --seed 1234 \
+  --nb-epochs 5000 \
+  --period 3
