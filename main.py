@@ -27,9 +27,6 @@ from utils.save import save_lr_curve, save_prediction_plot, save_yy_plot, save_m
 from utils.device import limit_gpu_memory # 限制 TensorFlow 對 GPU 記憶體的預留或使用量。
 from notebook.make_sliding_windows import make_sliding_windows
 from reports.Record_args_while_training import Record_args_while_training # 紀錄訓練時的nb_batch、bsize、period
-# ! from reports.Metrics_Comparison import metrics_comparison # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習 => 此程式是否需要用到 ??
-# ! from reports.output import MSE_Improvement, MAE_Improvement # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習 => 此程式是否需要用到 ??
-# ! from reports.util import dataset_idx_vs_improvement # 比較特徵非相似程度與MSE、MAE改進程度 => 此程式是否需要用到 ??
 
 
 def parse_arguments():
@@ -46,9 +43,7 @@ def parse_arguments():
     ap.add_argument('--train-ratio', default=0.7, type=float, help='percentage of train data to be loaded (default : 0.7)') # 指定訓練集比例為 0.7（即 70%）。數據集會依據此比例分割為訓練集和測試集或驗證集。
 
     # for training
-    ap.add_argument('--train-mode', '-m', default='pre-train', type=str,
-                    help='"pre-train", "transfer-learning", "without-transfer-learning", "comparison", "ensemble", "analysis" \
-                            "bagging", "noise-injection",  (default : pre-train)') # 設定模式
+    ap.add_argument('--train-mode', '-m', default='pre-train', type=str, help='"pre-train", "transfer-learning", "without-transfer-learning", "analysis" (default : pre-train)') # 設定模式
     ap.add_argument("--pre-model-path", default=None, type=str)
     ap.add_argument("--source-name", default=None, type=str)
     ap.add_argument("--target-name", default=None, type=str)
@@ -57,7 +52,6 @@ def parse_arguments():
     ap.add_argument('--nb-batch', default=16, type=int, help='number of batches in training (default : 16)') # 設定訓練過程中的批次數量，預設為 16。 批次大小（batch size） = 總訓練樣本數量 ÷ 批次數量（nb-batch）
     # ap.add_argument('--nb-subset', default=10, type=int,
     #                 help='number of data subset in bootstrapping (default : 10)') # 在bootstrapping中(即Bagging集成式學習)設定資料子集的數量。EX. 生成 10 個不同的訓練子集。
-    ap.add_argument('--noise-var', default=0.0001, type=float, help='variance of noise in noise injection (default : 0.0001)') # 在噪聲注入中設定噪聲的變異數。
     ap.add_argument('--valid-ratio', default=0.3, type=float, help='ratio of validation data in train data (default : 0.3)') # 在訓練資料中設定驗證資料的比例。
     ap.add_argument('--freeze', action='store_true', help='whether to freeze transferred weights in transfer learning (default : False)') # 在遷移學習中凍結已轉移的權重。
     ap.add_argument('--learning-rate', default=None, type=float, help='initial learning rate for optimizer')
@@ -498,21 +492,6 @@ def main():
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    
-    # elif args["train_mode"] == 'comparison': # 比較 Transfer-Learning遷移學習 vs. Without-Transfer-Learning不使用遷移學習
-    #     out_dir, train_mode = write_out_dir, args["train_mode"]
-    #     metrics_comparison(out_dir, train_mode) # 比較所有metrics。
-    #     MSE_Improvement(out_dir, train_mode) # 比較MSE
-    #     MAE_Improvement(out_dir, train_mode) # 比較MAE
-    #     dataset_idx_vs_improvement(out_dir, train_mode) # 'DTW'
-    
-
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
     elif args["train_mode"] == 'analysis': # 使用指定的模型權重，預測資料，並輸出結果。
         
@@ -589,61 +568,9 @@ def main():
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
-    
-    # elif args["train_mode"] == 'noise-injection': # 添加隨機噪聲來訓練模型，使模型在訓練過程中遇到更多的數據變化，減少過擬合並提高模型對測試數據的泛化能力。
-
-    #     for target in listdir('dataset/target'):
-            
-    #         # make output directory (設置輸出目錄)
-    #         write_result_out_dir = path.join(write_out_dir, args["train_mode"], target)
-    #         makedirs(write_result_out_dir, exist_ok=True)
-
-    #         # load dataset (加載數據集並切分為訓練和驗證集)
-    #         data_dir_path = path.join('dataset', 'target', target)
-    #         X_train, y_train, X_test, y_test = \
-    #             read_data_from_dataset(data_dir_path)
-    #         period = args["period"] # period：表示時間步數（time steps），即模型一次看多少步的歷史數據來進行預測。
-    #         X_train, X_valid, y_train, y_valid =  \
-    #             train_test_split(X_train, y_train, test_size=args["valid_ratio"], shuffle=False) # 將訓練數據劃分為訓練集和驗證集。
-    #         print(f'\nTarget dataset : {target}')
-    #         print(f'\nX_train : {X_train.shape}')
-    #         print(f'\nX_valid : {X_valid.shape}')
-    #         print(f'\nX_test : {X_test.shape[0]}')
-
-    #         # construct the model
-    #         file_path = path.join(write_result_out_dir, 'best_model.hdf5')
-    #         callbacks = make_callbacks(file_path)
-    #         input_shape = (period, X_train.shape[1])
-    #         model = build_model(input_shape, args["gpu"], write_result_out_dir, noise=args["noise_var"])
-
-    #         # train the model
-    #         bsize = len(y_train) // args["nb_batch"]
-    #         RTG = ReccurentTrainingGenerator(X_train, y_train, batch_size=bsize, timesteps=period, delay=1) # 生成訓練數據，以批次形式提供給模型。
-    #         RVG = ReccurentTrainingGenerator(X_valid, y_valid, batch_size=bsize, timesteps=period, delay=1) # 生成驗證數據，以批次形式提供給模型。
-    #         Record_args_while_training(write_out_dir, args["train_mode"], target, args['nb_batch'], bsize, period, data_size=(len(y_train) + len(y_valid) + len(y_test)))
-    #         H = model.fit_generator(RTG, validation_data=RVG, epochs=args["nb_epochs"], verbose=1, callbacks=callbacks) # 訓練模型
-    #         save_lr_curve(H, write_result_out_dir, target) # 繪製學習曲線
-
-    #         # prediction
-    #         best_model = load_model(file_path)
-    #         RPG = ReccurentPredictingGenerator(X_test, batch_size=1, timesteps=period) # 生成測試數據。
-    #         y_test_pred = best_model.predict_generator(RPG) # 預測測試數據
-
-    #         # save log for the model
-    #         y_test = y_test[-len(y_test_pred):] # 將y_test的長度調整為與 y_test_pred（模型預測值）的長度一致，確保在進行計算和可視化時，兩者長度相符。
-    #         save_prediction_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (折線圖)
-    #         save_yy_plot(y_test, y_test_pred, write_result_out_dir) # 繪製y_test與y_test_pred的對比圖，展示預測值與實際值的偏差 (散點圖)
-    #         mse_score = save_mse(y_test, y_test_pred, write_result_out_dir, model=best_model) # 計算y_test和y_test_pred之間的均方誤差（MSE）分數，
-    #         args["mse"] = mse_score
-    #         save_arguments(args, write_result_out_dir) # 保存本次訓練或測試的所有參數設定及結果。
-
-    #         # clear memory up (清理記憶體)
-    #         keras.backend.clear_session()
-    #         print('\n' * 2 + '-' * 140 + '\n' * 2)
-
-    # else:
-    #     print('No matchining train_mode')
+      
+    else:
+        print('No matchining train_mode')
 
 if __name__ == '__main__':
     main()
