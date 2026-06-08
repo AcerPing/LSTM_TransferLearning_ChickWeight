@@ -27,9 +27,9 @@ python main.py --out-dir "Chick Weight Result" \
 
 
 # ============================================================
-# Stage A-v2：Kaggle Source 0~21 -> FwuSow Target 0~21
+# Stage A：Kaggle Source 0~21 -> FwuSow Target 0~21
 # 模型設定：BN-frozen Partial Fine-tuning
-# 權重搬移：time_distributed_1 + lstm_1 + BN1 + lstm_2 + BN2
+# 權重搬移：time_distributed_1 + BN1 + lstm_2 + BN2
 # 訓練層：lstm_2 + output Dense
 # 目的：重新產生較保守、較穩定的 Stage A 權重
 # ============================================================
@@ -43,11 +43,11 @@ python main.py --out-dir "Chick Weight Result" \
 
 
 # ============================================================
-# Stage A-v2 Freeze：Kaggle Source 0~21 -> FwuSow Target 0~21
+# Stage A Freeze：Kaggle Source 0~21 -> FwuSow Target 0~21
 # 模型設定：Freeze Transfer Learning
 # 權重搬移：time_distributed_1 + lstm_1 + BN1 + lstm_2 + BN2
 # 訓練層：output Dense only
-# 目的：作為 Stage A-v2 的 Freeze 對照組
+# 目的：作為 Stage A 的 Freeze 對照組
 # ============================================================
 
 python main.py --out-dir "Chick Weight Result" \
@@ -60,9 +60,9 @@ python main.py --out-dir "Chick Weight Result" \
 
 
 # ============================================================
-# 建議：將 Stage A-v2 產生的最佳權重另存為穩定路徑
+# 建議：將 Stage A 產生的最佳權重另存為穩定路徑
 # 例如：
-# reports/Chick Weight Result/pre-train/StageA_v2_Kaggle0_21_to_FwuSow0_21/best_model.hdf5
+# reports/Chick Weight Result/pre-train/StageA_Kaggle0_21_to_FwuSow0_21/best_model.hdf5
 # 目的：避免 Stage B 使用錯誤權重
 # ============================================================
 
@@ -80,10 +80,10 @@ python main.py --out-dir "Chick Weight Result" \
 
 
 # ============================================================
-# Stage B：Stage A-v2 權重 -> FwuSow Target 0~31
+# Stage B：Stage A 權重 -> FwuSow Target 0~31
 # 模型設定：BN-assisted Partial Fine-tuning
-# 建議 learning rate：1e-10 或 1e-9
-# 目的：檢查 Stage A-v2 權重是否能改善 0~31 後期延伸任務
+# 建議 learning rate：1e-8
+# 目的：檢查 Stage A 權重是否能改善 0~31 後期延伸任務
 # ============================================================
 
 python main.py --out-dir "Chick Weight Result" \
@@ -97,7 +97,7 @@ python main.py --out-dir "Chick Weight Result" \
 
 
 # ============================================================
-# Stage B Freeze：Stage A-v2 權重 -> FwuSow Target 0~31
+# Stage B Freeze：Stage A 權重 -> FwuSow Target 0~31
 # 模型設定：Freeze Transfer Learning
 # 訓練層：output Dense only
 # 目的：作為 Stage B Freeze 對照組
