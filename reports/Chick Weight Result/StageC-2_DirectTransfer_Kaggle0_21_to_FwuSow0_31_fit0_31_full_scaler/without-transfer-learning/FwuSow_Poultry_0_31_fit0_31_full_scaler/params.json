@@ -1,0 +1,22 @@
+{
+    "period": 3,
+    "out_dir": "Chick Weight Result",
+    "seed": 1234,
+    "train_ratio": 0.7,
+    "train_mode": "without-transfer-learning",
+    "pre_model_path": null,
+    "source_name": null,
+    "target_name": "FwuSow_Poultry_0_31_fit0_31_full_scaler",
+    "gpu": false,
+    "nb_epochs": 5000,
+    "nb_batch": 16,
+    "valid_ratio": 0.3,
+    "freeze": false,
+    "learning_rate": null,
+    "train_verbose": 1,
+    "MAE Loss": 1.2337392592713765,
+    "MSE Loss": 1.5741378021485415,
+    "RMSE Loss": 1.2546464849305328,
+    "R2 Score": -174.58012383707188,
+    "Learning Rate": 2.499999936844688e-05
+}
