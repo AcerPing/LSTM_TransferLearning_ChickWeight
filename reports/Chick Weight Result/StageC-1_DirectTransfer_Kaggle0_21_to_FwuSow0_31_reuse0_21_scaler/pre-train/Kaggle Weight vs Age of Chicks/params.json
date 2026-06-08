@@ -1,0 +1,22 @@
+{
+    "period": 3,
+    "out_dir": "Chick Weight Result",
+    "seed": 1234,
+    "train_ratio": 0.7,
+    "train_mode": "pre-train",
+    "pre_model_path": null,
+    "source_name": "Kaggle Weight vs Age of Chicks",
+    "target_name": null,
+    "gpu": false,
+    "nb_epochs": 5000,
+    "nb_batch": 16,
+    "valid_ratio": 0.3,
+    "freeze": false,
+    "learning_rate": null,
+    "train_verbose": 1,
+    "MAE Loss": 0.008531756105746635,
+    "MSE Loss": 8.770688522782038e-05,
+    "RMSE Loss": 0.009365195418560169,
+    "R2 Score": 0.9757208214933886,
+    "Learning Rate": 1.0000000116860974e-07
+}

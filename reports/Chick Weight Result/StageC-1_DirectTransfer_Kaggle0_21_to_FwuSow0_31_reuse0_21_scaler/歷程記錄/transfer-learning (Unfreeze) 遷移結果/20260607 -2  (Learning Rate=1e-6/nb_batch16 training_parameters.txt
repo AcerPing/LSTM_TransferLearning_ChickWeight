@@ -1,0 +1,7 @@
+
+[2026-06-07 16:02:04]
+訓練資料集 FwuSow_Poultry_0_31_reuse0_21_scaler 時的參數：
+Data Size (data_size): 32
+Number of Batches (args['nb_batch']): 16
+Batch Size (bsize): 12
+Sequence Length (period): 3

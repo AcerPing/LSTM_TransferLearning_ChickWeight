@@ -1,0 +1,22 @@
+{
+    "period": 3,
+    "out_dir": "Chick Weight Result",
+    "seed": 1234,
+    "train_ratio": 0.7,
+    "train_mode": "transfer-learning",
+    "pre_model_path": "reports/Chick Weight Result/pre-train/Kaggle Weight vs Age of Chicks/best_model.hdf5",
+    "source_name": "Kaggle Weight vs Age of Chicks",
+    "target_name": "FwuSow_Poultry_0_31_reuse0_21_scaler",
+    "gpu": false,
+    "nb_epochs": 5000,
+    "nb_batch": 16,
+    "valid_ratio": 0.3,
+    "freeze": true,
+    "learning_rate": null,
+    "train_verbose": 1,
+    "MAE Loss": 0.7469291618059951,
+    "MSE Loss": 0.6179965573773496,
+    "RMSE Loss": 0.7861275706762546,
+    "R2 Score": -19.080040557204587,
+    "Learning Rate": 1.0000000116860974e-07
+}
