@@ -1,4 +1,5 @@
 from os import path
+import pickle
 
 from sklearn.metrics import mean_squared_error as mse, mean_absolute_error as mae, r2_score
 import numpy as np
@@ -221,3 +222,80 @@ def ErrorHistogram(y_test_time: np.array, y_pred_test_time: np.array, out_dir: s
     # plt.show()
     plt.close('all')  # 關閉所有繪圖對象
     print(f"Plot saved to {path.join(out_dir, 'Error Histogram.png')}")
+
+
+def load_target_scaler(data_dir_path: str):
+    """
+    讀取 target_scaler.pkl。
+    用於將 normalized y_true / y_pred 還原回原始體重尺度。
+    """
+    scaler_path = path.join(data_dir_path, "target_scaler.pkl")
+
+    if not path.exists(scaler_path):
+        print(f"[Original-scale metrics] 找不到 target_scaler.pkl，略過 inverse transform：{scaler_path}")
+        return None
+
+    with open(scaler_path, "rb") as f:
+        target_scaler = pickle.load(f)
+
+    print(f"[Original-scale metrics] 已讀取 target scaler：{scaler_path}")
+    return target_scaler
+
+
+def save_original_scale_metrics(y_true_norm, y_pred_norm, data_dir_path: str, out_dir: str, args: dict):
+    """
+    將 normalized y_true / y_pred inverse_transform 回原始體重尺度，
+    並輸出 original-scale MAE / MSE / RMSE / R2。
+    """
+    target_scaler = load_target_scaler(data_dir_path)
+
+    if target_scaler is None:
+        return args
+
+    # 保證 shape 為 (N, 1)
+    y_true_norm_2d = np.asarray(y_true_norm).reshape(-1, 1)
+    y_pred_norm_2d = np.asarray(y_pred_norm).reshape(-1, 1)
+
+    # inverse transform
+    y_true_original = target_scaler.inverse_transform(y_true_norm_2d).reshape(-1)
+    y_pred_original = target_scaler.inverse_transform(y_pred_norm_2d).reshape(-1)
+
+    # 計算 original-scale metrics
+    mae_original = mae(y_true_original, y_pred_original)
+    mse_original = mse(y_true_original, y_pred_original)
+    rmse_original = np.sqrt(mse_original)
+    r2_original = r2_score(y_true_original, y_pred_original)
+
+    print("\n[Original-scale metrics]")
+    print(f"MAE_original  : {mae_original:.6f}")
+    print(f"MSE_original  : {mse_original:.6f}")
+    print(f"RMSE_original : {rmse_original:.6f}")
+    print(f"R2_original   : {r2_original:.6f}")
+
+    # 存成 CSV，方便後續做表格
+    original_pred_path = path.join(out_dir, "prediction_original_scale.csv")
+    np.savetxt(
+        original_pred_path,
+        np.column_stack([y_true_original, y_pred_original, y_true_original - y_pred_original]),
+        delimiter=",",
+        header="y_true_original,y_pred_original,residual_original",
+        comments=""
+    )
+
+    # 存成 txt
+    original_log_path = path.join(out_dir, "metrics_original_scale.txt")
+    with open(original_log_path, "w", encoding="utf-8") as f:
+        f.write("[Original-scale metrics]\n")
+        f.write(f"MAE_original  : {mae_original:.6f}\n")
+        f.write(f"MSE_original  : {mse_original:.6f}\n")
+        f.write(f"RMSE_original : {rmse_original:.6f}\n")
+        f.write(f"R2_original   : {r2_original:.6f}\n")
+
+    # 寫入 params.json
+    args["MAE Original"] = float(mae_original)
+    args["MSE Original"] = float(mse_original)
+    args["RMSE Original"] = float(rmse_original)
+    args["R2 Original"] = float(r2_original)
+
+    return args
+

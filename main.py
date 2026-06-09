@@ -23,7 +23,15 @@ from utils.data_io import (
     # ReccurentPredictingGenerator,
     decompose_time_series
 )
-from utils.save import save_lr_curve, save_prediction_plot, save_yy_plot, save_mse, ResidualPlot, ErrorHistogram
+from utils.save import (
+    save_lr_curve,
+    save_prediction_plot,
+    save_yy_plot,
+    save_mse,
+    ResidualPlot,
+    ErrorHistogram,
+    save_original_scale_metrics
+)
 from utils.device import limit_gpu_memory # 限制 TensorFlow 對 GPU 記憶體的預留或使用量。
 from notebook.make_sliding_windows import make_sliding_windows
 from reports.Record_args_while_training import Record_args_while_training # 紀錄訓練時的nb_batch、bsize、period
@@ -83,7 +91,11 @@ def make_callbacks(file_path, save_csv=True):
         return [reduce_lr, model_checkpoint, early_stopping]
     csv_logger = CSVLogger(path.join(path.dirname(file_path), 'epoch_log.csv')) # 將每個訓練週期的損失和評估指標記錄到 CSV 文件中
     return [reduce_lr, model_checkpoint, csv_logger, early_stopping] 
- 
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 def main():
 
@@ -234,6 +246,7 @@ def main():
             args["MSE Loss"] = mse_score
             args["RMSE Loss"] = rmse_loss
             args["R2 Score"] = r2
+            args = save_original_scale_metrics( y_valid_eval, y_valid_pred, data_dir_path, write_result_out_dir, args) # inverse transform 回原始尺度
             Learning_Rate = best_model.optimizer.get_config()["learning_rate"] # 取得最終學習率
             args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存訓練參數 (args) 到結果輸出目錄中。
@@ -374,6 +387,7 @@ def main():
                 args["MSE Loss"] = mse_score
                 args["RMSE Loss"] = rmse_loss
                 args["R2 Score"] = r2
+                args = save_original_scale_metrics( y_test_eval, y_test_pred, data_dir_path, write_result_out_dir, args) # inverse transform 回原始尺度
                 Learning_Rate = best_model.optimizer.get_config()["learning_rate"]
                 args["Learning Rate"] = Learning_Rate
                 save_arguments(args, write_result_out_dir) # 保存本次訓練或測試的所有參數設定及結果。
@@ -477,6 +491,7 @@ def main():
             args["MSE Loss"] = mse_score
             args["RMSE Loss"] = rmse_loss
             args["R2 Score"] = r2
+            args = save_original_scale_metrics( y_test_eval, y_test_pred, data_dir_path, write_result_out_dir, args) # inverse transform 回原始尺度
             Learning_Rate = best_model.optimizer.get_config()["learning_rate"] # 取得最終學習率
             args["Learning Rate"] = Learning_Rate
             save_arguments(args, write_result_out_dir) # 保存本次訓練或測試的所有參數設定及結果。
