@@ -1,0 +1,10 @@
+{
+    "dataset_path": "dataset/target/FwuSow_Poultry_0~21",
+    "model_path": "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Unfreeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5",
+    "period": 3,
+    "eval_mode": "test",
+    "MAE Original": 50.15790303548178,
+    "MSE Original": 3050.5151852540057,
+    "RMSE Original": 55.231469157120976,
+    "R2 Original": 0.7004259943693969
+}

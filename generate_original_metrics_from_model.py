@@ -21,7 +21,7 @@ from notebook.make_sliding_windows import make_sliding_windows
 
 def parse_arguments():
     ap = argparse.ArgumentParser(
-        description="Generate original-scale metrics from an existing trained model."
+        description="Generate plots and original-scale metrics from an existing trained model."
     )
 
     ap.add_argument("--dataset-path", required=True, type=str)
@@ -50,8 +50,14 @@ def main():
 
     makedirs(out_dir, exist_ok=True)
 
+    if not path.exists(dataset_path):
+        raise FileNotFoundError(f"找不到 dataset path: {dataset_path}")
+
+    if not path.exists(model_path):
+        raise FileNotFoundError(f"找不到 model path: {model_path}")
+
     print("=" * 100)
-    print("Generate original-scale metrics from existing model")
+    print("Generate plots and original-scale metrics from existing model")
     print(f"Dataset path : {dataset_path}")
     print(f"Model path   : {model_path}")
     print(f"Output dir   : {out_dir}")
@@ -90,21 +96,44 @@ def main():
         horizon=1
     )
 
+    if len(X_eval_w) == 0:
+        raise ValueError(
+            f"sliding window 數量為 0，請檢查 period={period} 是否大於 evaluation data 長度。"
+        )
+
     print("X_eval_w:", X_eval_w.shape)
     print("y_eval_w:", y_eval_w.shape)
 
     best_model = load_model(model_path, custom_objects={"rmse": rmse})
+    # # 4. Predict
     y_pred = best_model.predict(X_eval_w, batch_size=1)
 
-    # 重新輸出 normalized-scale 圖表與指標
+    # 4-1. Save normalized-scale prediction CSV
+    # normalized_csv_path = path.join(
+    #     out_dir,
+    #         f"prediction_normalized_scale_{args['eval_mode']}.csv"
+    #     )
+    # np.savetxt(
+    #     normalized_csv_path,
+    #     np.column_stack([
+    #         np.asarray(y_eval_w).reshape(-1),
+    #         np.asarray(y_pred).reshape(-1),
+    #         np.asarray(y_eval_w).reshape(-1) - np.asarray(y_pred).reshape(-1)
+    #     ]),
+    #     delimiter=",",
+    #     header="y_true_norm,y_pred_norm,residual_norm",
+    #     comments="",
+    #     fmt="%.6f"
+    # )
+
+    # 5. Save normalized-scale plots and metrics / 重新輸出 normalized-scale 圖表與指標
     save_prediction_plot(y_eval_w, y_pred, out_dir)
     save_yy_plot(y_eval_w, y_pred, out_dir)
     save_mse(y_eval_w, y_pred, out_dir, model=best_model)
     ResidualPlot(y_eval_w, y_pred, out_dir)
     ErrorHistogram(y_eval_w, y_pred, out_dir)
-
     print("y_pred:", y_pred.shape)
-
+    # 6. Save original-scale metrics
     metric_args = {
         "dataset_path": dataset_path,
         "model_path": model_path,
@@ -124,8 +153,17 @@ def main():
         json.dump(metric_args, f, indent=4, ensure_ascii=False)
 
     print("\nDone.")
-    print(f"Saved: {path.join(out_dir, 'metrics_original_scale.txt')}")
-    print(f"Saved: {path.join(out_dir, 'prediction_original_scale.csv')}")
+    metrics_path = path.join(out_dir, "metrics_original_scale.txt")
+    compare_path = path.join(out_dir, "prediction_compare.csv")
+    if path.exists(metrics_path):
+        print(f"Saved: {metrics_path}")
+    else:
+        print(f"Skipped: {metrics_path}")
+
+    if path.exists(compare_path):
+        print(f"Saved: {compare_path}")
+    else:
+        print(f"Skipped: {compare_path}")
 
 
 if __name__ == "__main__":

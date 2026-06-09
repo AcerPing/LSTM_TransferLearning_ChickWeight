@@ -278,22 +278,31 @@ def ErrorHistogram(y_test_time: np.array, y_pred_test_time: np.array, out_dir: s
     residuals = y_true - y_pred # 計算殘差：正值代表模型低估，負值代表模型高估
     r_min = np.nanmin(residuals)
     r_max = np.nanmax(residuals)
-    # 加一點 margin，並確保 0 被包含進顯示範圍
+    # # 以 0 為中心建立對稱範圍，讓圖比較穩定好讀；加一點 margin，並確保 0 被包含進顯示範圍
     r_abs_max = max(abs(r_min), abs(r_max))
-    margin = r_abs_max * 0.1 if r_abs_max > 0 else 0.1
-    axis_min = min(r_min - margin, -margin)
-    axis_max = max(r_max + margin, margin)
-    plt.hist(residuals, bins='auto', color='deepskyblue', label='Residuals (y_true - y_pred)') # 柱狀圖，並讓Matplotlib自動計算bins區間。
-    plt.axvline(x=0, color='red', linestyle='--', linewidth=2, label='Ideal Line (Residual = 0)') # 基準線，加一條紅色的垂直基準線，位於Residual為0的地方。
+    margin = r_abs_max * 0.15 if r_abs_max > 0 else 0.1
+    axis_min = -r_abs_max - margin
+    axis_max = r_abs_max + margin
+    # 小樣本時不要用 bins='auto'，改用固定數量
+    n = len(residuals)
+    bin_count = max(5, min(12, n + 1))
+    bins = np.linspace(axis_min, axis_max, bin_count)
     # 填充Overestimation區域（Residual < 0）
-    plt.axvspan(axis_min, 0, color='burlywood', alpha=0.2, label='OverEstimation Region (Residual < 0)')  # 當 Residual < 0 時，表示實際值 < 預測值（高估）。
+    plt.axvspan(axis_min, 0, color='burlywood', alpha=0.2, label='OverEstimation Region (Residual < 0)')  # 當 Residual < 0 時，表示實際值 < 預測值（高估）。    
     # 填充Underestimation區域（Residual > 0）
-    plt.axvspan(0, axis_max, color='darkseagreen', alpha=0.2, label='UnderEstimation Region (Residual > 0)')  # 當 Residual > 0 時，表示實際值 > 預測值（低估）。
+    plt.axvspan(0, axis_max, color='darkseagreen', alpha=0.2, label='UnderEstimation Region (Residual > 0)')  # 當 Residual > 0 時，表示實際值 > 預測值（低估）。    
+    
+    plt.hist(residuals, bins=bins, color='deepskyblue', alpha=0.5, edgecolor='black', linewidth=0.8, label='Residuals (y_true - y_pred)') # 柱狀圖，並讓Matplotlib自動計算bins區間。 # -- 'auto'    
+    # 每個 residual 加上小點，讓小樣本分布更清楚
+    plt.scatter(residuals, np.full_like(residuals, -0.03), color='black', s=35, alpha=0.75, marker='x', label='Individual Residual Points' )
+    # Residual = 0 基準線
+    plt.axvline(x=0, color='red', linestyle='--', linewidth=2, label='Ideal Line (Residual = 0)') # 基準線，加一條紅色的垂直基準線，位於Residual為0的地方。
     plt.xlim(axis_min, axis_max)
     title = 'Error Histogram 誤差直方圖'
     plt.title(title, fontsize=16)
     plt.xlabel('Residuals', fontsize=14)
-    plt.ylabel('count', fontsize=14)
+    plt.ylabel('Count', fontsize=14)
+    plt.grid(axis='y', alpha=0.3)
     plt.legend(loc='best', fontsize=12, frameon=True, edgecolor='black', fancybox=True)
     plt.tight_layout()
     plt.savefig(path.join(out_dir, 'Error Histogram.png'), bbox_inches='tight') # 保存圖像
@@ -351,18 +360,19 @@ def save_original_scale_metrics(y_true_norm, y_pred_norm, data_dir_path: str, ou
     print(f"R2_original   : {r2_original:.6f}")
 
     # 存成 CSV，方便後續做表格
-    original_pred_path = path.join(out_dir, "prediction_original_scale.csv")
+    original_pred_path = path.join(out_dir, "prediction_compare.csv")
     np.savetxt(
         original_pred_path,
         np.column_stack([
             y_true_norm_2d.reshape(-1),
             y_pred_norm_2d.reshape(-1),
+            y_true_norm_2d.reshape(-1) - y_pred_norm_2d.reshape(-1),
             y_true_original,
             y_pred_original,
             y_true_original - y_pred_original
         ]),
         delimiter=",",
-        header="y_true_norm,y_pred_norm,y_true_original,y_pred_original,residual_original",
+        header="y_true_norm,y_pred_norm,residual_norm,y_true_original,y_pred_original,residual_original",
         comments="",
         fmt="%.6f"
     )

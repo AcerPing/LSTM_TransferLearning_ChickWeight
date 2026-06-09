@@ -193,24 +193,24 @@ python generate_original_metrics_from_model.py \
 # Inverse 2：Stage A Transfer Learning Unfreeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0~21" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Unfreeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Unfreeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode test
 
 # Inverse 3：Stage A Transfer Learning Freeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0~21" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Freeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Freeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode test
 
 # Inverse 4：Stage A Without Transfer Learning
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0~21" \
-  --model-path "reports/Chick Weight Result/without-transfer-learning/FwuSow_Poultry_0~21/best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/without-transfer-learning/FwuSow_Poultry_0~21" \
+  --model-path "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21" \
   --period 3 \
   --eval-mode test
 
