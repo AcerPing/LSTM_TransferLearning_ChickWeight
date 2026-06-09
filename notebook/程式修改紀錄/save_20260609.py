@@ -94,7 +94,7 @@ def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_
         if i % 1000 == 0:  # 每隔 1000 個數據點顯示一次標籤
             plt.annotate(f'{value:.2f}', xy=(i+1, value), xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', color='crimson', fontsize=12, alpha=0.9)
     # 在每個點上顯示數據標籤 (實際數據)
-    for i, value in enumerate(np.asarray(y_test_time).reshape(-1)):
+    for i, value in enumerate(y_test_time):
         if i % 1000 == 0:  # 每隔 1000 個數據點顯示一次標籤
             plt.annotate(f'{value:.2f}', xy=(i+1, value),  xytext=(0, -5), textcoords="offset points", ha='center', va='top', color='dodgerblue', fontsize=12, alpha=0.9)
     
@@ -226,12 +226,8 @@ def save_mse(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str, mo
 # 殘差圖（Residual Plot）
 def ResidualPlot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
     plt.figure(figsize=(12, 8))
-
-    # 統一轉成 1D，避免 broadcasting 錯誤
-    y_true = np.asarray(y_test_time).reshape(-1)
-    y_pred = np.asarray(y_pred_test_time).reshape(-1)
-    residuals = y_true - y_pred # 計算殘差：正值代表模型低估，負值代表模型高估
-    plt.scatter(y_pred, residuals, color='blue', alpha=0.6, label='Residuals (y_true - y_pred)') # 繪製殘差散點圖
+    residuals = y_test_time - y_pred_test_time.flatten() # 計算殘差
+    plt.scatter(y_pred_test_time, residuals, color='blue', alpha=0.6, label='Residuals (y_test - y_pred)') # 繪製殘差散點圖
     plt.axhline(y=0, color='r', linestyle='--', linewidth=1.5, label='Ideal Line (Residual = 0)') # 基準線 (Residual = 0)
     
     # 動態座標範圍
@@ -252,11 +248,11 @@ def ResidualPlot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str
     x_fill = np.linspace(axis_x_min, axis_x_max, 500)
     # 標示模型低估與高估的區域
     # Residual > 0：模型低估
-    plt.fill_between( x_fill, 0, axis_y_max, color='lightgreen', alpha=0.2, label='Underestimation Region (Residual > 0)' ) # 淺綠色 (color='lightgreen'): 模型低估區域（殘差 > 0）。
+    plt.fill_between( x=np.linspace(0, 1, 500), y1=0, y2=1, color='lightgreen', alpha=0.2, label='Underestimation Region (Residual > 0)' ) # 淺綠色 (color='lightgreen'): 模型低估區域（殘差 > 0）。
     # Residual < 0：模型高估
-    plt.fill_between( x_fill, axis_y_min, 0, color='lightsalmon', alpha=0.2, label='Overestimation Region (Residual < 0)' )  # 淺橙色 (color='lightsalmon'): 模型高估區域（殘差 < 0）。
-    plt.xlim(axis_x_min, axis_x_max)  # 設定X軸，預測值範圍0到1。 # plt.xlim(0, 1)
-    plt.ylim(axis_y_min, axis_y_max)  # 設定Y軸，殘差範圍-1到1。 # plt.ylim(-1, 1)
+    plt.fill_between( x=np.linspace(0, 1, 500), y1=-1, y2=0, color='lightsalmon', alpha=0.2, label='Overestimation Region (Residual < 0)' )  # 淺橙色 (color='lightsalmon'): 模型高估區域（殘差 < 0）。
+    plt.xlim(0, 1) # 設定X軸，預測值範圍0到1。
+    plt.ylim(-1, 1) # 設定Y軸，殘差範圍-1到1。
     title = 'Residual Plot 殘差圖'
     plt.title(title, fontsize=16)
     plt.xlabel('Predicted Values', fontsize=14)
@@ -272,24 +268,13 @@ def ResidualPlot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str
 # 誤差直方圖（Error Histogram）
 def ErrorHistogram(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
     plt.figure(figsize=(12, 8))
-    # 統一轉成 1D，避免 broadcasting 錯誤
-    y_true = np.asarray(y_test_time).reshape(-1)
-    y_pred = np.asarray(y_pred_test_time).reshape(-1)
-    residuals = y_true - y_pred # 計算殘差：正值代表模型低估，負值代表模型高估
-    r_min = np.nanmin(residuals)
-    r_max = np.nanmax(residuals)
-    # 加一點 margin，並確保 0 被包含進顯示範圍
-    r_abs_max = max(abs(r_min), abs(r_max))
-    margin = r_abs_max * 0.1 if r_abs_max > 0 else 0.1
-    axis_min = min(r_min - margin, -margin)
-    axis_max = max(r_max + margin, margin)
-    plt.hist(residuals, bins='auto', color='deepskyblue', label='Residuals (y_true - y_pred)') # 柱狀圖，並讓Matplotlib自動計算bins區間。
+    residuals = y_test_time - y_pred_test_time.flatten() # 計算殘差
+    plt.hist(residuals, bins='auto', color='deepskyblue', label='Residuals (y_test - y_pred)') # 柱狀圖，並讓Matplotlib自動計算bins區間。
     plt.axvline(x=0, color='red', linestyle='--', linewidth=2, label='Ideal Line (Residual = 0)') # 基準線，加一條紅色的垂直基準線，位於Residual為0的地方。
     # 填充Overestimation區域（Residual < 0）
-    plt.axvspan(axis_min, 0, color='burlywood', alpha=0.2, label='OverEstimation Region (Residual < 0)')  # 當 Residual < 0 時，表示實際值 < 預測值（高估）。
+    plt.axvspan(-1, 0, color='burlywood', alpha=0.2, label='OverEstimation Region (Residual < 0)')  # 當 Residual < 0 時，表示實際值 < 預測值（高估）。
     # 填充Underestimation區域（Residual > 0）
-    plt.axvspan(0, axis_max, color='darkseagreen', alpha=0.2, label='UnderEstimation Region (Residual > 0)')  # 當 Residual > 0 時，表示實際值 > 預測值（低估）。
-    plt.xlim(axis_min, axis_max)
+    plt.axvspan(0, 1, color='darkseagreen', alpha=0.2, label='UnderEstimation Region (Residual > 0)')  # 當 Residual > 0 時，表示實際值 > 預測值（低估）。
     title = 'Error Histogram 誤差直方圖'
     plt.title(title, fontsize=16)
     plt.xlabel('Residuals', fontsize=14)
@@ -363,8 +348,7 @@ def save_original_scale_metrics(y_true_norm, y_pred_norm, data_dir_path: str, ou
         ]),
         delimiter=",",
         header="y_true_norm,y_pred_norm,y_true_original,y_pred_original,residual_original",
-        comments="",
-        fmt="%.6f"
+        comments=""
     )
 
     # 存成 txt

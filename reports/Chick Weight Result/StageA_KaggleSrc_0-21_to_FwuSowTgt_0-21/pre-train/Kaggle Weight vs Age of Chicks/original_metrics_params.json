@@ -1,0 +1,10 @@
+{
+    "dataset_path": "dataset/source/Kaggle Weight vs Age of Chicks",
+    "model_path": "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/pre-train/Kaggle Weight vs Age of Chicks/best_model.hdf5",
+    "period": 3,
+    "eval_mode": "pretrain-valid",
+    "MAE Original": 1.5971122741699162,
+    "MSE Original": 3.079810812512841,
+    "RMSE Original": 1.754938976862968,
+    "R2 Original": 0.9756456375804741
+}

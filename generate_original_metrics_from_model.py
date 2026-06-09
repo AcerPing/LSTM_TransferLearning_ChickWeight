@@ -8,7 +8,14 @@ from sklearn.model_selection import train_test_split
 
 from utils.model import rmse
 from utils.data_io import read_data_from_dataset
-from utils.save import save_original_scale_metrics
+from utils.save import (
+    save_original_scale_metrics,
+    save_prediction_plot,
+    save_yy_plot,
+    save_mse,
+    ResidualPlot,
+    ErrorHistogram
+)
 from notebook.make_sliding_windows import make_sliding_windows
 
 
@@ -88,6 +95,13 @@ def main():
 
     best_model = load_model(model_path, custom_objects={"rmse": rmse})
     y_pred = best_model.predict(X_eval_w, batch_size=1)
+
+    # 重新輸出 normalized-scale 圖表與指標
+    save_prediction_plot(y_eval_w, y_pred, out_dir)
+    save_yy_plot(y_eval_w, y_pred, out_dir)
+    save_mse(y_eval_w, y_pred, out_dir, model=best_model)
+    ResidualPlot(y_eval_w, y_pred, out_dir)
+    ErrorHistogram(y_eval_w, y_pred, out_dir)
 
     print("y_pred:", y_pred.shape)
 

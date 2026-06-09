@@ -184,8 +184,8 @@ python main.py --out-dir "Chick Weight Result" \
 # Inverse 1：Pre-Train / Kaggle Source
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/source/Kaggle Weight vs Age of Chicks" \
-  --model-path "reports/Chick Weight Result/pre-train/Kaggle Weight vs Age of Chicks/best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/pre-train/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/pre-train/Kaggle Weight vs Age of Chicks/best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/pre-train/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode pretrain-valid \
   --valid-ratio 0.3

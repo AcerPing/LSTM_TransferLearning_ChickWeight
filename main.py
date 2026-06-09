@@ -84,7 +84,7 @@ def save_arguments(args, out_dir): # 旨在將參數字典 args 以 JSON 格式�
 
 
 def make_callbacks(file_path, save_csv=True):
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=4, min_lr=1e-7) # 降低學習率，以促進模型更好地收斂。
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=4, min_lr=1e-12) # 降低學習率，以促進模型更好地收斂。
     model_checkpoint = ModelCheckpoint(filepath=file_path, monitor='val_loss', save_best_only=True, verbose=1) # 保存最佳模型。 # -- save_weights_only = True,
     early_stopping = EarlyStopping(monitor='val_loss', patience=100, min_delta=1e-4, restore_best_weights=True, verbose=1) 
     if not save_csv:
