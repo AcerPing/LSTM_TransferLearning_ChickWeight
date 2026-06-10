@@ -217,24 +217,24 @@ python generate_original_metrics_from_model.py \
 # Inverse 5：Stage B / Stage C-1 Baseline：FwuSow 0~31 reuse0_21_scaler Without TL
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler" \
-  --model-path "reports/Chick Weight Result/without-transfer-learning/FwuSow_Poultry_0_31_reuse0_21_scaler/best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/without-transfer-learning/FwuSow_Poultry_0_31_reuse0_21_scaler" \
+  --model-path "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/without-transfer-learning/FwuSow_Poultry_0_31_reuse0_21_scaler/best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/without-transfer-learning/FwuSow_Poultry_0_31_reuse0_21_scaler" \
   --period 3 \
   --eval-mode test
 
 # Inverse 6：Stage B Transfer Learning Unfreeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21/StageA_Kaggle0_21_to_FwuSow0_21_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21" \
+  --model-path "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21/StageA_Kaggle0_21_to_FwuSow0_21_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21" \
   --period 3 \
   --eval-mode test
 
 # Inverse 7：Stage B Transfer Learning Freeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21/StageA_Kaggle0_21_to_FwuSow0_21_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21" \
+  --model-path "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21/StageA_Kaggle0_21_to_FwuSow0_21_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21" \
   --period 3 \
   --eval-mode test
 

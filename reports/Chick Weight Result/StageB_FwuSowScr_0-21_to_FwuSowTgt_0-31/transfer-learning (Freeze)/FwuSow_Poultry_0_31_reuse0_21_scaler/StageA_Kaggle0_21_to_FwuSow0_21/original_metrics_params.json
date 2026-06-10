@@ -1,0 +1,10 @@
+{
+    "dataset_path": "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler",
+    "model_path": "reports/Chick Weight Result/StageB_FwuSowScr_0-21_to_FwuSowTgt_0-31/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/StageA_Kaggle0_21_to_FwuSow0_21/StageA_Kaggle0_21_to_FwuSow0_21_transferred_best_model.hdf5",
+    "period": 3,
+    "eval_mode": "test",
+    "MAE Original": 391.46758742559524,
+    "MSE Original": 205345.31278718417,
+    "RMSE Original": 453.15043063775653,
+    "R2 Original": -4.953825829667724
+}
