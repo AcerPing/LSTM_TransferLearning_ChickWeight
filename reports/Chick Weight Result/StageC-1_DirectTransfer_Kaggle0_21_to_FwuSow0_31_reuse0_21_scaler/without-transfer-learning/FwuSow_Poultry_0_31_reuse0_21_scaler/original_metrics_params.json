@@ -1,0 +1,10 @@
+{
+    "dataset_path": "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler",
+    "model_path": "reports/Chick Weight Result/StageC-1_DirectTransfer_Kaggle0_21_to_FwuSow0_31_reuse0_21_scaler//without-transfer-learning/FwuSow_Poultry_0_31_reuse0_21_scaler/best_model.hdf5",
+    "period": 3,
+    "eval_mode": "test",
+    "MAE Original": 2069.963792346773,
+    "MSE Original": 4311074.816233299,
+    "RMSE Original": 2076.3127934473887,
+    "R2 Original": -123.9962234157301
+}

@@ -1,0 +1,5 @@
+[Original-scale metrics]
+MAE_original  : 2069.963792
+MSE_original  : 4311074.816233
+RMSE_original : 2076.312793
+R2_original   : -123.996223

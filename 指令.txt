@@ -241,16 +241,16 @@ python generate_original_metrics_from_model.py \
 # Inverse 8：Stage C-1 Direct Transfer Unfreeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageC-1_DirectTransfer_Kaggle0_21_to_FwuSow0_31_reuse0_21_scaler/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageC-1_DirectTransfer_Kaggle0_21_to_FwuSow0_31_reuse0_21_scaler/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode test
 
 # Inverse 9：Stage C-1 Direct Transfer Freeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_reuse0_21_scaler" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageC-1_DirectTransfer_Kaggle0_21_to_FwuSow0_31_reuse0_21_scaler/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageC-1_DirectTransfer_Kaggle0_21_to_FwuSow0_31_reuse0_21_scaler/transfer-learning (Freeze)/FwuSow_Poultry_0_31_reuse0_21_scaler/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode test
 
