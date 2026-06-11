@@ -122,7 +122,7 @@ def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_
     print(f"Plot saved to {path.join(out_dir, file_name)}")
 
 
-def save_yy_plot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
+def save_yy_plot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str, file_name: str = "yy_plot.png", title: str = "Observed vs Predicted Values", axis_label: str = "Value"):
     """save yy plot for target variable
 
     Args:
@@ -174,16 +174,15 @@ def save_yy_plot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str
     )
     plt.xlim(axis_min, axis_max)
     plt.ylim(axis_min, axis_max)
-    title = '觀察值與預測值的對角線分析圖'
-    plt.title(title, fontsize=16)
-    plt.xlabel('Observed', fontsize=14) # 設置x軸標籤。
-    plt.ylabel('Predicted', fontsize=14) # 設置y軸標籤。
+    plt.title(title, fontsize=16) # title = '觀察值與預測值的對角線分析圖'
+    plt.xlabel(f'Observed ({axis_label})', fontsize=14) # plt.xlabel('Observed', fontsize=14) # 設置x軸標籤。
+    plt.ylabel(f'Predicted ({axis_label})', fontsize=14) # plt.ylabel('Predicted', fontsize=14) # 設置y軸標籤。
     plt.legend(loc='best', fontsize=12) # Add legend
     plt.tight_layout()
-    plt.savefig(path.join(out_dir, 'yy_plot.png'), bbox_inches='tight') # 保存圖像
+    plt.savefig(path.join(out_dir, file_name), bbox_inches='tight') # 保存圖像
     # plt.show()
     plt.close('all')  # 關閉所有繪圖對象
-    print(f"Plot saved to {path.join(out_dir, 'yy_plot.png')}")
+    print(f"Plot saved to {path.join(out_dir, file_name)}")
 
 
 # 自訂RMSE函數 (內部函數)
@@ -223,7 +222,7 @@ def save_mse(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str, mo
 
 
 # 殘差圖（Residual Plot）
-def ResidualPlot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
+def ResidualPlot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str, file_name: str = "Residual Plot.png", title: str = "Residual Plot 殘差圖", x_label: str = "Predicted Values", y_label: str = "Residuals"):
     plt.figure(figsize=(12, 8))
 
     # 統一轉成 1D，避免 broadcasting 錯誤
@@ -256,20 +255,19 @@ def ResidualPlot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str
     plt.fill_between( x_fill, axis_y_min, 0, color='lightsalmon', alpha=0.2, label='Overestimation Region (Residual < 0)' )  # 淺橙色 (color='lightsalmon'): 模型高估區域（殘差 < 0）。
     plt.xlim(axis_x_min, axis_x_max)  # 設定X軸，預測值範圍0到1。 # plt.xlim(0, 1)
     plt.ylim(axis_y_min, axis_y_max)  # 設定Y軸，殘差範圍-1到1。 # plt.ylim(-1, 1)
-    title = 'Residual Plot 殘差圖'
-    plt.title(title, fontsize=16)
-    plt.xlabel('Predicted Values', fontsize=14)
-    plt.ylabel('Residuals', fontsize=14)
+    plt.title(title, fontsize=16) # title = 'Residual Plot 殘差圖'
+    plt.xlabel(x_label, fontsize=14)
+    plt.ylabel(y_label, fontsize=14)
     plt.legend(loc='best', fontsize=12, frameon=True, edgecolor='black', fancybox=True) # 增加圖例
     plt.tight_layout()
-    plt.savefig(path.join(out_dir, 'Residual Plot.png'), bbox_inches='tight') # 保存圖像
+    plt.savefig(path.join(out_dir, file_name), bbox_inches='tight') # 保存圖像
     # plt.show()
     plt.close('all')  # 關閉所有繪圖對象
-    print(f"Plot saved to {path.join(out_dir, 'Residual Plot.png')}")
+    print(f"Plot saved to {path.join(out_dir, file_name)}")
     
 
 # 誤差直方圖（Error Histogram）
-def ErrorHistogram(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
+def ErrorHistogram(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str, file_name: str = "Error Histogram.png", title: str = "Error Histogram 誤差直方圖", x_label: str = "Residuals"):
     plt.figure(figsize=(12, 8))
     # 統一轉成 1D，避免 broadcasting 錯誤
     y_true = np.asarray(y_test_time).reshape(-1)
@@ -297,17 +295,16 @@ def ErrorHistogram(y_test_time: np.array, y_pred_test_time: np.array, out_dir: s
     # Residual = 0 基準線
     plt.axvline(x=0, color='red', linestyle='--', linewidth=2, label='Ideal Line (Residual = 0)') # 基準線，加一條紅色的垂直基準線，位於Residual為0的地方。
     plt.xlim(axis_min, axis_max)
-    title = 'Error Histogram 誤差直方圖'
-    plt.title(title, fontsize=16)
-    plt.xlabel('Residuals', fontsize=14)
+    plt.title(title, fontsize=16) # title = 'Error Histogram 誤差直方圖'
+    plt.xlabel(x_label, fontsize=14)
     plt.ylabel('Count', fontsize=14)
     plt.grid(axis='y', alpha=0.3)
     plt.legend(loc='best', fontsize=12, frameon=True, edgecolor='black', fancybox=True)
     plt.tight_layout()
-    plt.savefig(path.join(out_dir, 'Error Histogram.png'), bbox_inches='tight') # 保存圖像
+    plt.savefig(path.join(out_dir, file_name), bbox_inches='tight') # 保存圖像
     # plt.show()
     plt.close('all')  # 關閉所有繪圖對象
-    print(f"Plot saved to {path.join(out_dir, 'Error Histogram.png')}")
+    print(f"Plot saved to {path.join(out_dir, file_name)}")
 
 
 def load_target_scaler(data_dir_path: str):
@@ -354,6 +351,32 @@ def save_original_scale_metrics(y_true_norm, y_pred_norm, data_dir_path: str, ou
         file_name="prediction_original_scale.png",
         title="Comparison of Actual and Predicted Values (Original Scale)",
         y_label="Body Weight (g)"
+    )
+    # 輸出 original-scale yy plot，供正式報告 / 簡報使用
+    save_yy_plot(
+        y_true_original,
+        y_pred_original,
+        out_dir,
+        file_name="yy_plot_original_scale.png",
+        title="Observed vs Predicted Values (Original Scale)",
+        axis_label="Body Weight (g)"
+    )
+    ResidualPlot(
+        y_true_original,
+        y_pred_original,
+        out_dir,
+        file_name="residual_plot_original_scale.png",
+        title="Residual Plot (Original Scale)",
+        x_label="Predicted Body Weight (g)",
+        y_label="Residuals (g)"
+    )
+    ErrorHistogram(
+        y_true_original,
+        y_pred_original,
+        out_dir,
+        file_name="error_histogram_original_scale.png",
+        title="Error Histogram (Original Scale)",
+        x_label="Residuals (g)"
     )
 
     # 計算 original-scale metrics

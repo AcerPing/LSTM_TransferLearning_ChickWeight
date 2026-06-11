@@ -282,12 +282,19 @@ python generate_original_metrics_from_model.py \
 ============================================================
 七、Inverse Transform 結果輸出檢查
 ============================================================
-每次 inverse transform 後，請確認目標 out-dir 內出現：
-1. metrics_original_scale.txt
-2. prediction_compare.csv
-3. prediction_normalized_scale.png
-4. prediction_original_scale.png
-5. original_metrics_params.json
+每次執行 generate_original_metrics_from_model.py 後，請確認 out-dir 內包含：
+1. prediction_normalized_scale.png
+2. yy_plot_normalized_scale.png
+3. residual_plot_normalized_scale.png
+4. error_histogram_normalized_scale.png
+5. prediction_original_scale.png
+6. yy_plot_original_scale.png
+7. residual_plot_original_scale.png
+8. error_histogram_original_scale.png
+9. prediction_compare.csv
+10. metrics_original_scale.txt
+11. original_metrics_params.json
+12. log.txt
 
 若沒有產生，優先檢查：
 1. model-path 是否真的存在。

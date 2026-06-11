@@ -127,7 +127,7 @@ def main():
     # )
 
     # 5. Save normalized-scale plots and metrics / 重新輸出 normalized-scale 圖表與指標
-    # save_prediction_plot(y_eval_w, y_pred, out_dir)
+    
     save_prediction_plot(
         y_eval_w,
         y_pred,
@@ -135,11 +135,33 @@ def main():
         file_name="prediction_normalized_scale.png",
         title="Comparison of Actual and Predicted Values (Normalized Scale)",
         y_label="Normalized Value"
-    )
-    save_yy_plot(y_eval_w, y_pred, out_dir)
+    ) # save_prediction_plot(y_eval_w, y_pred, out_dir)
+    save_yy_plot(
+        y_eval_w,
+        y_pred,
+        out_dir,
+        file_name="yy_plot_normalized_scale.png",
+        title="Observed vs Predicted Values (Normalized Scale)",
+        axis_label="Normalized Value"
+    )   # save_yy_plot(y_eval_w, y_pred, out_dir)
     save_mse(y_eval_w, y_pred, out_dir, model=best_model)
-    ResidualPlot(y_eval_w, y_pred, out_dir)
-    ErrorHistogram(y_eval_w, y_pred, out_dir)
+    ResidualPlot(
+        y_eval_w,
+        y_pred,
+        out_dir,
+        file_name="residual_plot_normalized_scale.png",
+        title="Residual Plot (Normalized Scale)",
+        x_label="Predicted Values (Normalized)",
+        y_label="Residuals (Normalized)"
+    ) # ResidualPlot(y_eval_w, y_pred, out_dir)
+    ErrorHistogram(
+        y_eval_w,
+        y_pred,
+        out_dir,
+        file_name="error_histogram_normalized_scale.png",
+        title="Error Histogram (Normalized Scale)",
+        x_label="Residuals (Normalized)"
+    ) # ErrorHistogram(y_eval_w, y_pred, out_dir)
     print("y_pred:", y_pred.shape)
     # 6. Save original-scale metrics
     metric_args = {
