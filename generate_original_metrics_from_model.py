@@ -127,7 +127,15 @@ def main():
     # )
 
     # 5. Save normalized-scale plots and metrics / 重新輸出 normalized-scale 圖表與指標
-    save_prediction_plot(y_eval_w, y_pred, out_dir)
+    # save_prediction_plot(y_eval_w, y_pred, out_dir)
+    save_prediction_plot(
+        y_eval_w,
+        y_pred,
+        out_dir,
+        file_name="prediction_normalized_scale.png",
+        title="Comparison of Actual and Predicted Values (Normalized Scale)",
+        y_label="Normalized Value"
+    )
     save_yy_plot(y_eval_w, y_pred, out_dir)
     save_mse(y_eval_w, y_pred, out_dir, model=best_model)
     ResidualPlot(y_eval_w, y_pred, out_dir)

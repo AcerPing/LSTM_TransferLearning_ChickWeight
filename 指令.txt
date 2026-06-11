@@ -78,7 +78,7 @@ python main.py --out-dir "Chick Weight Result" \
   --seed 1234 \
   --nb-epochs 6500 \
   --period 3 \
-  --learning-rate 1e-9
+  --learning-rate 1e-8
 
 # Stage B Freeze：Transfer Learning Freeze 對照組
 python main.py --out-dir "Chick Weight Result" \
@@ -257,24 +257,24 @@ python generate_original_metrics_from_model.py \
 # Inverse 10：Stage C-2 Baseline：FwuSow 0~31 fit0_31_full_scaler Without TL
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_fit0_31_full_scaler" \
-  --model-path "reports/Chick Weight Result/without-transfer-learning/FwuSow_Poultry_0_31_fit0_31_full_scaler/best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/without-transfer-learning/FwuSow_Poultry_0_31_fit0_31_full_scaler" \
+  --model-path "reports/Chick Weight Result/StageC-2_DirectTransfer_Kaggle0_21_to_FwuSow0_31_fit0_31_full_scaler/without-transfer-learning/FwuSow_Poultry_0_31_fit0_31_full_scaler/best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageC-2_DirectTransfer_Kaggle0_21_to_FwuSow0_31_fit0_31_full_scaler/without-transfer-learning/FwuSow_Poultry_0_31_fit0_31_full_scaler" \
   --period 3 \
   --eval-mode test
 
 # Inverse 11：Stage C-2 Direct Transfer Unfreeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_fit0_31_full_scaler" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageC-2_DirectTransfer_Kaggle0_21_to_FwuSow0_31_fit0_31_full_scaler/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageC-2_DirectTransfer_Kaggle0_21_to_FwuSow0_31_fit0_31_full_scaler/transfer-learning (Unfreeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode test
 
 # Inverse 12：Stage C-2 Direct Transfer Freeze
 python generate_original_metrics_from_model.py \
   --dataset-path "dataset/target/FwuSow_Poultry_0_31_fit0_31_full_scaler" \
-  --model-path "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
-  --out-dir "reports/Chick Weight Result/transfer-learning (Freeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks" \
+  --model-path "reports/Chick Weight Result/StageC-2_DirectTransfer_Kaggle0_21_to_FwuSow0_31_fit0_31_full_scaler/transfer-learning (Freeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5" \
+  --out-dir "reports/Chick Weight Result/StageC-2_DirectTransfer_Kaggle0_21_to_FwuSow0_31_fit0_31_full_scaler/transfer-learning (Freeze)/FwuSow_Poultry_0_31_fit0_31_full_scaler/Kaggle Weight vs Age of Chicks" \
   --period 3 \
   --eval-mode test
 
@@ -284,8 +284,10 @@ python generate_original_metrics_from_model.py \
 ============================================================
 每次 inverse transform 後，請確認目標 out-dir 內出現：
 1. metrics_original_scale.txt
-2. prediction_original_scale.csv
-3. original_metrics_params.json
+2. prediction_compare.csv
+3. prediction_normalized_scale.png
+4. prediction_original_scale.png
+5. original_metrics_params.json
 
 若沒有產生，優先檢查：
 1. model-path 是否真的存在。

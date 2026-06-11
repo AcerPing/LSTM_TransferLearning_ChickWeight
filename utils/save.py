@@ -76,7 +76,7 @@ def save_lr_curve(H, out_dir: str, f_name=None):
     print(f"Plot saved to {path.join(out_dir, f'{f_name}.png')}")
 
 
-def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
+def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str, file_name: str = "prediction.png", title: str = "Comparison of Actual and Predicted Values", y_label: str = "Value"):
     """save prediction plot for tareget varibale
 
     Args:
@@ -110,17 +110,16 @@ def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_
     plt.ylim(y_min - margin, y_max + margin) # -- 原本方式 # plt.ylim(0, 1) # 設置y軸的顯示範圍為0到1。
     plt.xlim(0, len(y_test_time)) # -- 原本方式 # plt.xlim(0, len(y_test_time)) # 設置x軸範圍，從0到實際數據的長度。
 
-    title = "Comparison of Actual and Predicted Values"
-    plt.title(title)
-    plt.ylabel('Value') # 設置y軸標籤。
+    plt.title(title) # title = "Comparison of Actual and Predicted Values"
+    plt.ylabel(y_label) # plt.ylabel('Value') # 設置y軸標籤。
     plt.xlabel('樣本序列') # 設置x軸標籤。
     plt.legend(loc="best") # 顯示圖例，並將圖例放在最佳位置（由 Matplotlib 自動確定）。
     plt.grid(alpha=0.3)  # 加入透明網格，便於觀察
     plt.tight_layout()
-    plt.savefig(path.join(out_dir, 'prediction.png'), bbox_inches='tight') # 保存圖像
+    plt.savefig(path.join(out_dir, file_name), bbox_inches='tight') # 保存圖像
     # plt.show() # 顯示圖表
     plt.close('all')  # 關閉所有繪圖對象
-    print(f"Plot saved to {path.join(out_dir, 'prediction.png')}")
+    print(f"Plot saved to {path.join(out_dir, file_name)}")
 
 
 def save_yy_plot(y_test_time: np.array, y_pred_test_time: np.array, out_dir: str):
@@ -346,6 +345,16 @@ def save_original_scale_metrics(y_true_norm, y_pred_norm, data_dir_path: str, ou
     # inverse transform
     y_true_original = target_scaler.inverse_transform(y_true_norm_2d).reshape(-1)
     y_pred_original = target_scaler.inverse_transform(y_pred_norm_2d).reshape(-1)
+
+    # 輸出 original-scale prediction plot，供正式報告 / 簡報使用
+    save_prediction_plot(
+        y_true_original,
+        y_pred_original,
+        out_dir,
+        file_name="prediction_original_scale.png",
+        title="Comparison of Actual and Predicted Values (Original Scale)",
+        y_label="Body Weight (g)"
+    )
 
     # 計算 original-scale metrics
     mae_original = mae(y_true_original, y_pred_original)
