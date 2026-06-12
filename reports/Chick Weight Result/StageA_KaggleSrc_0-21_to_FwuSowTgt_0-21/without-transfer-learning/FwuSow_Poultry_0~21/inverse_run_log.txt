@@ -1,0 +1,72 @@
+Using TensorFlow backend.
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/framework/dtypes.py:526: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  _np_qint8 = np.dtype([("qint8", np.int8, 1)])
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/framework/dtypes.py:527: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  _np_quint8 = np.dtype([("quint8", np.uint8, 1)])
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/framework/dtypes.py:528: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  _np_qint16 = np.dtype([("qint16", np.int16, 1)])
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/framework/dtypes.py:529: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  _np_quint16 = np.dtype([("quint16", np.uint16, 1)])
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/framework/dtypes.py:530: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  _np_qint32 = np.dtype([("qint32", np.int32, 1)])
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/framework/dtypes.py:535: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  np_resource = np.dtype([("resource", np.ubyte, 1)])
+WARNING:tensorflow:From /home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/ops/resource_variable_ops.py:435: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+2026-06-11 18:13:15.643496: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 AVX512F FMA
+2026-06-11 18:13:15.647385: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 4691025000 Hz
+2026-06-11 18:13:15.647686: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x629e40bf8390 executing computations on platform Host. Devices:
+2026-06-11 18:13:15.647707: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+2026-06-11 18:13:15.877750: E tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:984] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+2026-06-11 18:13:15.877813: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1433] Found device 0 with properties: 
+name: NVIDIA GeForce RTX 3090 major: 8 minor: 6 memoryClockRate(GHz): 1.695
+pciBusID: 0000:01:00.0
+totalMemory: 24.00GiB freeMemory: 22.76GiB
+2026-06-11 18:13:15.877829: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1512] Adding visible gpu devices: 0
+2026-06-11 18:13:15.878392: I tensorflow/core/common_runtime/gpu/gpu_device.cc:984] Device interconnect StreamExecutor with strength 1 edge matrix:
+2026-06-11 18:13:15.878430: I tensorflow/core/common_runtime/gpu/gpu_device.cc:990]      0 
+2026-06-11 18:13:15.878437: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1003] 0:   N 
+2026-06-11 18:13:15.878527: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1194] Could not identify NUMA node of platform GPU id 0, defaulting to 0.  Your kernel may not have been built with NUMA support.
+2026-06-11 18:13:15.878618: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 22140 MB memory) -> physical GPU (device: 0, name: NVIDIA GeForce RTX 3090, pci bus id: 0000:01:00.0, compute capability: 8.6)
+2026-06-11 18:13:15.880302: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x629e3f500bb0 executing computations on platform CUDA. Devices:
+2026-06-11 18:13:15.880335: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): NVIDIA GeForce RTX 3090, Compute Capability 8.6
+WARNING:tensorflow:From /home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/tensorflow/python/ops/math_ops.py:3066: to_int32 (from tensorflow.python.ops.math_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.cast instead.
+2026-06-11 18:13:18.195644: I tensorflow/stream_executor/dso_loader.cc:152] successfully opened CUDA library libcublas.so.10.0 locally
+/home/hocheping/miniconda3/envs/Fwusow_LSTM_TransferLearning/lib/python3.7/site-packages/sklearn/base.py:318: UserWarning: Trying to unpickle estimator MinMaxScaler from version 1.6.1 when using version 0.22.1. This might lead to breaking code or invalid results. Use at your own risk.
+  UserWarning)
+====================================================================================================
+Generate plots and original-scale metrics from existing model
+Dataset path : dataset/target/FwuSow_Poultry_0~21
+Model path   : reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/best_model.hdf5
+Output dir   : reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21
+Period       : 3
+Eval mode    : test
+====================================================================================================
+X_eval: (7, 8)
+y_eval: (7,)
+X_eval_w: (4, 3, 8)
+y_eval_w: (4,)
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/prediction_normalized_scale.png
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/yy_plot_normalized_scale.png
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/residual_plot_normalized_scale.png
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/error_histogram_normalized_scale.png
+y_pred: (4, 1)
+[Original-scale metrics] 已讀取 target scaler：dataset/target/FwuSow_Poultry_0~21/target_scaler.pkl
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/prediction_original_scale.png
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/yy_plot_original_scale.png
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/residual_plot_original_scale.png
+Plot saved to reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/error_histogram_original_scale.png
+
+[Original-scale metrics]
+MAE_original  : 395.418447
+MSE_original  : 171083.973796
+RMSE_original : 413.622985
+R2_original   : -15.801199
+
+Done.
+Saved: reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/metrics_original_scale.txt
+Saved: reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/without-transfer-learning/FwuSow_Poultry_0~21/prediction_compare.csv

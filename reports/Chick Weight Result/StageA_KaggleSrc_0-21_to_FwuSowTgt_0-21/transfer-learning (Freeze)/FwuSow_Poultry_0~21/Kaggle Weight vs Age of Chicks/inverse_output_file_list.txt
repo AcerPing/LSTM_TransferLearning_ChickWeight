@@ -1,0 +1,32 @@
+Case name: Inverse 3：Stage A Transfer Learning Freeze
+Generated at: 2026-06-11 18:13:14
+Dataset path: dataset/target/FwuSow_Poultry_0~21
+Model path: reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Freeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks/Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5
+Output directory: reports/Chick Weight Result/StageA_KaggleSrc_0-21_to_FwuSowTgt_0-21/transfer-learning (Freeze)/FwuSow_Poultry_0~21/Kaggle Weight vs Age of Chicks
+
+Files in output directory:
+architecture.png
+epoch_log.csv
+error_histogram_normalized_scale.png
+error_histogram_original_scale.png
+Error Histogram.png
+FwuSow_Poultry_0~21 Learning Curve.png
+inverse_output_file_list.txt
+inverse_run_log.txt
+Kaggle Weight vs Age of Chicks_transferred_best_model.hdf5
+log.txt
+metrics_original_scale.txt
+original_metrics_params.json
+params.json
+prediction_compare.csv
+prediction_normalized_scale.png
+prediction_original_scale.png
+prediction.png
+residual_plot_normalized_scale.png
+residual_plot_original_scale.png
+Residual Plot.png
+yy_plot_normalized_scale.png
+yy_plot_original_scale.png
+yy_plot.png
+螢幕擷取畫面 2026-06-06 150045.png
+螢幕擷取畫面 2026-06-09 151451.png
