@@ -112,9 +112,9 @@ def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_
 
     plt.ylim(y_min - margin, y_max + margin) # -- 原本方式 # plt.ylim(0, 1) # 設置y軸的顯示範圍為0到1。
     if len(x) > 1:
-        plt.xlim(1, len(x)) # -- 原本方式 # plt.xlim(0, len(y_test_time)) # 設置x軸範圍，從0到實際數據的長度。
+        plt.xlim(0.9, len(x) + 0.1) # -- 原本方式 # 設置x軸範圍，左右保留一點空間。
     elif len(x) == 1:
-        plt.xlim(0.5, 1.5) # -- 原本方式 # plt.xlim(0, len(y_test_time)) # 設置x軸範圍，從0到實際數據的長度。
+        plt.xlim(0.9, 1.1) # -- 原本方式 # 設置x軸範圍，左右保留一點空間。
 
     plt.title(title) # title = "Comparison of Actual and Predicted Values"
     plt.ylabel(y_label) # plt.ylabel('Value') # 設置y軸標籤。
