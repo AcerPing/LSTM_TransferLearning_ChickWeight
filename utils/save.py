@@ -86,29 +86,35 @@ def save_prediction_plot(y_test_time: np.array, y_pred_test_time: np.array, out_
     """
     plt.figure(figsize=(30, 10)) # 設定圖表大小
     plt.rcParams["font.size"] = 18 # 設置字體大小
-    plt.plot([i for i in range(1, 1 + len(y_pred_test_time))], y_pred_test_time, color='red', label='predicted', marker='x', markersize=2) # 繪製預測數據的紅色折線圖
-    plt.plot([i for i in range(1, 1 + len(y_test_time))], y_test_time, color='blue', label='measured', marker="o", markersize=2) # 繪製實際數據的藍色折線圖
+    y_true = np.asarray(y_test_time).reshape(-1)
+    y_pred = np.asarray(y_pred_test_time).reshape(-1)
+    x = np.arange(1, len(y_true) + 1)
+    plt.plot(x, y_pred, color='red', label='predicted', marker='x', markersize=2) # 繪製預測數據的紅色折線圖
+    plt.plot(x, y_true, color='blue', label='measured', marker="o", markersize=2) # 繪製實際數據的藍色折線圖
     
     # 在每個點上顯示數據標籤 (預測數據)
-    for i, value in enumerate(y_pred_test_time.flatten()):
+    for i, value in enumerate(y_pred):
         if i % 1000 == 0:  # 每隔 1000 個數據點顯示一次標籤
-            plt.annotate(f'{value:.2f}', xy=(i+1, value), xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', color='crimson', fontsize=12, alpha=0.9)
+            plt.annotate(f'{value:.2f}', xy=(x[i], value), xytext=(0, 5), textcoords="offset points", ha='center', va='bottom', color='crimson', fontsize=12, alpha=0.9)
     # 在每個點上顯示數據標籤 (實際數據)
-    for i, value in enumerate(np.asarray(y_test_time).reshape(-1)):
+    for i, value in enumerate(y_true):
         if i % 1000 == 0:  # 每隔 1000 個數據點顯示一次標籤
-            plt.annotate(f'{value:.2f}', xy=(i+1, value),  xytext=(0, -5), textcoords="offset points", ha='center', va='top', color='dodgerblue', fontsize=12, alpha=0.9)
+            plt.annotate(f'{value:.2f}', xy=(x[i], value),  xytext=(0, -5), textcoords="offset points", ha='center', va='top', color='dodgerblue', fontsize=12, alpha=0.9)
     
     # -- 動態 y 軸：避免 Stage B / Stage C-1 中 y > 1 或 y_pred < 0 被裁切
     all_values = np.concatenate([
-        np.asarray(y_test_time).reshape(-1),
-        np.asarray(y_pred_test_time).reshape(-1)
+        y_true,
+        y_pred
     ])
     y_min = min(0, np.nanmin(all_values))
     y_max = np.nanmax(all_values)
     margin = (y_max - y_min) * 0.1 if y_max > y_min else 0.1
 
     plt.ylim(y_min - margin, y_max + margin) # -- 原本方式 # plt.ylim(0, 1) # 設置y軸的顯示範圍為0到1。
-    plt.xlim(0, len(y_test_time)) # -- 原本方式 # plt.xlim(0, len(y_test_time)) # 設置x軸範圍，從0到實際數據的長度。
+    if len(x) > 1:
+        plt.xlim(1, len(x)) # -- 原本方式 # plt.xlim(0, len(y_test_time)) # 設置x軸範圍，從0到實際數據的長度。
+    elif len(x) == 1:
+        plt.xlim(0.5, 1.5) # -- 原本方式 # plt.xlim(0, len(y_test_time)) # 設置x軸範圍，從0到實際數據的長度。
 
     plt.title(title) # title = "Comparison of Actual and Predicted Values"
     plt.ylabel(y_label) # plt.ylabel('Value') # 設置y軸標籤。
